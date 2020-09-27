@@ -1,0 +1,19 @@
+{
+  "name": "wheredoc",
+  "version": "0.0.1",
+  "description": "\"Reserving namespace for ES6 friendly version of where.js\"",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dfkaye/wheredoc.git"
+  },
+  "author": "David Kaye",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dfkaye/wheredoc/issues"
+  },
+  "homepage": "https://github.com/dfkaye/wheredoc#readme"
+}
