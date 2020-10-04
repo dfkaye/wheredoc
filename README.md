@@ -171,10 +171,14 @@ tape('suite', function(test) {
 + finish the parts testing
 + convert "Number.RESERVED_CONSTANT" to Number.RESERVED_CONSTANT
 + support localized currency, number formats
-+ build out mocha bdd, mocha tdd, qunit, and tape examples
++ build out nodejs mocha bdd, mocha tdd, qunit, and tape examples
++ build out browser mocha bdd, and qunit examples (live-server)
 + Docs
   + Shorten the README
   + Move longer narrative to dfkaye.com blog.
 + create Docs folder
   + how to run the tests
   + how to import ES6 modules into commonJS.
+    - https://nodejs.org/api/esm.html#esm_interoperability_with_commonjs
+    - https://exploringjs.com/impatient-js/ch_modules.html#import.meta.url-on-node.js
+

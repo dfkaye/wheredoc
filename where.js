@@ -1,3 +1,9 @@
+/**
+ * @author david f. kaye 
+ * @name where.js
+ * @license MIT
+ */
+
 export { where, parse, build, convert }
 
 function where({ doc, test }) {
