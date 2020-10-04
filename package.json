@@ -2,18 +2,28 @@
   "name": "wheredoc",
   "version": "0.0.1",
   "description": "\"Reserving namespace for ES6 friendly version of where.js\"",
-  "main": "index.js",
+  "main": "where.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "mocha": "node node_modules/mocha/bin/mocha test/mocha/node-suite.js",
+    "qunit": "node ./test/qunit/node-suite.js",
+    "tape": "node ./test/tape/node-suite.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dfkaye/wheredoc.git"
   },
-  "author": "David Kaye",
+  "author": {
+    "name": "david kaye (@dfkaye)",
+    "email": "dfkaye@yahoo.com"
+  },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/dfkaye/wheredoc/issues"
   },
-  "homepage": "https://github.com/dfkaye/wheredoc#readme"
+  "homepage": "https://github.com/dfkaye/wheredoc#readme",
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^8.1.3"
+  }
 }
