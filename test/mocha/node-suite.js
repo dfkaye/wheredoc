@@ -65,7 +65,7 @@ describe('where', () => {
   })
 
   describe('convert', () => {
-    it('boolean strings', () => {
+    it('string to boolean', () => {
       var values = ["true", "false"];
       var actual = convert({ values });
 
@@ -73,7 +73,7 @@ describe('where', () => {
       expect(actual[1]).to.equal(false);
     })
 
-    it('void strings', () => {
+    it('string to void', () => {
       var values = ["null", "undefined"];
       var actual = convert({ values });
 
@@ -81,7 +81,7 @@ describe('where', () => {
       expect(actual[1]).to.equal(undefined);
     })
 
-    it('numeric strings', () => {
+    it('string to number', () => {
       var values = [
         "1234.5678",
         "12,345.6789",

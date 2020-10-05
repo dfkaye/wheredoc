@@ -28,13 +28,13 @@ function parse({ doc }) {
       return
     }
 
-    var currentRow = []
+    var currentRow = [];
 
     values.split('|').forEach(value => {
       currentRow.push(String(value).trim());
     })
 
-    data.push(currentRow)
+    data.push(currentRow);
   });
 
   return {

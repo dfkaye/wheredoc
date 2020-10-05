@@ -34,7 +34,7 @@ The goal of that [heredoc](https://en.wikipedia.org/wiki/Here_document) style wa
 
 And ease of maintenance is one of the points of test-driven development.
 
-## Goals
+## Simplifying
 
 [wheredoc](https://github.com/dfkaye/wheredoc) uses a simpler setup to reduce the cleverness, using a test specifier with a `doc` field pointing to a template literal string instead of a special comment syntax, and a `test` field pointing to a function containing the assertions.
 
@@ -80,9 +80,9 @@ it('description', function () {
 
 [wheredoc](https://github.com/dfkaye/wheredoc) no longer supports the notions of log](https://github.com/dfkaye/where.js#log) or [intercept](https://github.com/dfkaye/where.js#intercept). These were added to where.js for the sake of identifying individual rows within a table where the expectation fails.
 
-As a result, instead of the `where` clause appearing inside of `it` or `test` statements, `where` generates row data and returns an array. You then call `map` or `forEach` on that array, accepting a function param in your iterator, and then calling the framework's `it` or `test` statement.
+As a result, instead of the `where` clause appearing inside of `it` or `test` statements, `where` generates row data and returns an array. You then call `map` or `forEach` on that array, accepting a function param in your iterator, and then calling that function which in turn run your `test` function containing the assertions.
 
-That now de-couples the `where` clause from the mechanics of the test framework. There is no more need of defining a framework-specific [strategy](https://github.com/dfkaye/where.js#strategy)
+That now de-couples the `where` clause from the mechanics of the test framework. There is no more need of defining a framework-specific [strategy](https://github.com/dfkaye/where.js#strategy).
 
 ## Examples
 
@@ -92,7 +92,7 @@ var doc = `
 a | b | c
 1 | 2 | 3
 4 | 5 | 9.0
-"h" | 'b' | "one, 'please'"
+"h" | 'b' | "one, 'please'" // should fail
 `;
 ```
 
@@ -168,7 +168,7 @@ tape('suite', function(test) {
 
 ## To do
 
-+ finish the parts testing
++ finish all the parts testing
 + convert "Number.RESERVED_CONSTANT" to Number.RESERVED_CONSTANT
 + support localized currency, number formats
 + build out nodejs mocha bdd, mocha tdd, qunit, and tape examples
@@ -181,4 +181,3 @@ tape('suite', function(test) {
   + how to import ES6 modules into commonJS.
     - https://nodejs.org/api/esm.html#esm_interoperability_with_commonjs
     - https://exploringjs.com/impatient-js/ch_modules.html#import.meta.url-on-node.js
-
