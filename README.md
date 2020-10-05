@@ -171,8 +171,12 @@ tape('suite', function(test) {
 + finish all the parts testing
 + convert "Number.RESERVED_CONSTANT" to Number.RESERVED_CONSTANT
 + support localized currency, number formats
-+ build out nodejs mocha bdd, mocha tdd, qunit, and tape examples
-+ build out browser mocha bdd, and qunit examples (live-server)
++ nodejs examples
+  - mocha TDD
+  - tape
++ browser examples (using live-server)
+  - mocha BDD
+  - qunit
 + Docs
   + Shorten the README
   + Move longer narrative to dfkaye.com blog.
