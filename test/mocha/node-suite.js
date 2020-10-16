@@ -25,9 +25,32 @@ import { where, parse, build, convert } from '../../where.js';
 
 describe('where', () => {
 
+  var doc = `
+    a | b | c
+    2 | 4 | 6
+  `
+  var test = function (a, b, c) {
+    expect(c).to.equal(a + b);
+  }
+
+  var { scenarios, errors } = where({ doc, test })
+
+  scenarios.forEach(scenario => {
+    it('should work', scenario.apply)
+  })
+
   describe('parse', () => {
 
-    it('filled', () => {
+    /*
+     * returns params and rows
+     * template literal
+     * multiline string
+     * empty string
+     * removes empty rows
+     * removes commented rows
+     */
+
+    it('template literal', () => {
 
       var doc = `
         a | b | c
@@ -41,6 +64,17 @@ describe('where', () => {
 
     });
 
+    it("multiline string", () => {
+      var doc = "\
+        a  |  b  |  c		\n\
+        1  |  2  |  3		\n\
+        4  |  3  |  7		\n\
+        6  |  6  |  12	\n\
+      "
+
+      console.log(parse({ doc }))
+    });
+
     it('empty', () => {
       var doc = `
         // commented row
@@ -51,17 +85,86 @@ describe('where', () => {
   });
 
   describe('build', () => {
-    console.log(build)
-    // var f = function (a, b, c) {
-    //   expect(a + b).to.equal(c)
-    // }
 
-    // var fn = function () {
-    //   console.log('applying...')
-    //   return f.apply(null, [1, 2, 3])
-    // }
+    var test = function (a, b, c) {
+      expect(a + b).to.equal(c)
+    }
 
-    // it('works', fn);
+    it('should run scenarios', () => {
+      var data = {
+        params: ["a", "b", "c"],
+        rows: [
+          ["1", "2", "3"],
+          ["4", "5", "9"]
+        ]
+      };
+
+      var { scenarios, errors } = build({ data, test });
+
+      expect(scenarios.length).to.equal(2);
+      expect(errors.length).to.equal(0);
+
+      scenarios.forEach(scenario => {
+        scenario.apply();
+      })
+    });
+
+    it('should find unbalanced rows', () => {
+      var data = {
+        params: ["a", "b", "c"],
+        rows: [
+          ["'h'", '"b"'],
+          []
+        ]
+      };
+
+      var { scenarios, errors } = build({ data, test });
+
+      expect(scenarios.length).to.equal(2)
+      expect(errors.length).to.equal(2)
+
+      scenarios.forEach((scenario, index) => {
+        expect(scenario.error).to.equal(errors[index]);
+
+        expect(scenario.apply).to.throw();
+      })
+    })
+
+    it('should find duplicate params', () => {
+      var data = {
+        params: ["a", "a", "c"],
+        rows: [
+          ["1", "2", "3"]
+        ]
+      };
+
+      var { scenarios, errors } = build({ data, test });
+
+      expect(errors.length).to.equal(1);
+
+      scenarios.forEach(scenario => {
+        expect(scenario.error).to.equal(errors[0]);
+
+        expect(scenario.apply).to.throw();
+      })
+    })
+
+    it('should notify on empty data', () => {
+      var data = {
+        params: ["a", "b", "c"],
+        rows: []
+      };
+
+      var { scenarios, errors } = build({ data, test });
+
+      expect(errors.length).to.equal(1);
+
+      scenarios.forEach(scenario => {
+        expect(scenario.error).to.equal(errors[0]);
+
+        expect(scenario.apply).to.throw();
+      })
+    })
   })
 
   describe('convert', () => {
@@ -94,21 +197,6 @@ describe('where', () => {
       expect(actual[1]).to.equal(12345.6789);
       expect(actual[2]).to.equal(0);
       expect(actual[3]).to.equal(-1234567.89);
-
     })
-  })
-
-  describe('apply', () => {
-
-    var f = function (a, b, c) {
-      expect(a + b).to.equal(c)
-    }
-
-    var fn = function () {
-      console.log('applying...')
-      return f.apply(null, [1, 2, 3])
-    }
-
-    it('works', fn);
   })
 });

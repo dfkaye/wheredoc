@@ -8,9 +8,8 @@ export { where, parse, build, convert }
 
 function where({ doc, test }) {
   var data = parse({ doc });
-  //var array = build({ data });
 
-  return data;
+  return build({ data, test });
 }
 
 function parse({ doc }) {
@@ -43,42 +42,67 @@ function parse({ doc }) {
   }
 }
 
-function build({ data }) {
-  var errors = [];
+function build({ data, test }) {
   var { params, rows } = data;
+  var scenarios = [];
+  var errors = [];
 
   // at least one row
   if (!rows.length) {
-    errors.push('No data values defined.')
+    errors.push(`No values defined for "${params.join(' ')}"`)
   }
 
   // unique params
   if (params.length > new Set(params).size) {
-    errors.push(`Duplicate param names in [${params.join(' ')}].`)
+    errors.push(`Duplicate param names: "${params.join(' ')}".`)
+  }
+
+  if (errors.length) {
+    var error = errors.join('\n');
+    var apply = function () { throw new Error(error) }
+
+    return {
+      scenarios: [{ params, values: rows, apply, error }],
+      errors
+    }
   }
 
   // row-level
-  rows.forEach(values => {
+  rows.forEach((values, row) => {
     // - value count equals params length
     //    (should find unbalanced row)
     if (values.length != params.length) {
-      errors.push(`Expected ${params.length} values but found ${row.length}.`);
+      var error = `Row ${row + 1}: Expected ${params.length} values but found ${values.length}.
+      params: ${params.join(', ')}
+      values: ${values.join(', ')}
+      `;
+
+      var apply = function () {
+        throw new Error(error)
+      }
+
+      scenarios.push({ params, values, apply, error });
+      errors.push(error);
+
+      return;
     }
 
     // - convert values
-    //    ("null" to null, "undefined" to undefined, "true" ot true, "false" to false)
-    //    (convert numeric string to Number)
-    //    (handle Number.RESERVED_CONSTANTS)
-    //    (handle Object, Array)
+    //   done ("null" to null, "undefined" to undefined, "true" ot true, "false" to false)
+    //   done  (convert numeric string to Number)
+
+    //   To Do  (handle Number.RESERVED_CONSTANTS)
+    //   To Do (handle Object, Array)
+
     values = convert({ values });
 
-    // create row value test invoker
-    //    function () { return test.apply(row data) }
-    // [{ params, values, fn }]
+    // - create row value test invoker
+    var apply = function () { return test.apply(null, values) }
 
+    scenarios.push({ params, values, apply });
   })
 
-  return data;
+  return { scenarios, errors };
 }
 
 function convert({ values }) {
@@ -93,11 +117,11 @@ function convert({ values }) {
     }
 
     if (/\d+/g.test(value) && !/[\'|\"]/g.test(value)) {
-      var number = value.replace(/\,/g, "");
-      var test = Number(number)
+      var string = value.replace(/\,/g, "");
+      var number = Number(string)
 
-      if (test === test) {
-        return test;
+      if (number === number) {
+        return number;
       }
     }
 

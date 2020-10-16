@@ -2,11 +2,17 @@
 
 *3 Oct 2020: in progress*
 
+*16 Oct 2020: getting back to it - round trip done; more todos coming*
+
 Started: 2 Oct 2020
 
 Data-driven test clauses using docstring-like data tables in JavaScript, in nodejs or browsers.
 
-squat name for where.js deprecation and refactor 
+Docs incomplete.
+
+Test cases incomplete.
+
+Squatting name to replace and deprecate where.js. 
 
 ## Prior art
 
@@ -80,12 +86,11 @@ it('description', function () {
 
 [wheredoc](https://github.com/dfkaye/wheredoc) no longer supports the notions of log](https://github.com/dfkaye/where.js#log) or [intercept](https://github.com/dfkaye/where.js#intercept). These were added to where.js for the sake of identifying individual rows within a table where the expectation fails.
 
-As a result, instead of the `where` clause appearing inside of `it` or `test` statements, `where` generates row data and returns an array. You then call `map` or `forEach` on that array, accepting a function param in your iterator, and then calling that function which in turn run your `test` function containing the assertions.
+As a result, instead of the `where` clause appearing inside of `it` or `test` statements, `where` generates row data and returns an array. You then call `map` or `forEach` on that array, accepting a function param in your iterator, and then calling that function which in turn runs your `test` function containing the assertions.
 
 That now de-couples the `where` clause from the mechanics of the test framework. There is no more need of defining a framework-specific [strategy](https://github.com/dfkaye/where.js#strategy).
 
 ## Examples
-
 
 ```
 var doc = `
@@ -100,11 +105,11 @@ a | b | c
 
 ```
 describe('suite', (done) => {
-  var assert = function (a, b, c) {
+  var test = function (a, b, c) {
 	  expect(a + b).toBe(c);
   }
 
-	where({ doc, assert }).each({name, fn} => {
+	where({ doc, test }).each({name, fn} => {
 		it(name, fn);
 	});
 
@@ -120,7 +125,7 @@ suite('suite', (done) => {
 	  expect(a + b).toBe(c);
   };
 
-	where({ doc, assert }).each({name, fn} => {
+	where({ doc, test: assert }).each({name, fn} => {
 		test(name, () => {
       fn();
     });
@@ -142,7 +147,7 @@ Qunit.test('where', (test) => {
 	  test.equal(a + b, c);
   };
 
-  where({ doc, assert }).each({name, fn} => {
+  where({ doc, test: assert }).each({name, fn} => {
     fn();
   });
 
@@ -158,7 +163,7 @@ tape('suite', function(test) {
     test.equal(a + b, c);
   };
 
-  where({ doc, assert }).each({name, fn} => {
+  where({ doc, test: assert }).each({name, fn} => {
     fn();
   });
 
@@ -168,9 +173,13 @@ tape('suite', function(test) {
 
 ## To do
 
-+ finish all the parts testing
++ better error messaging
++ more `parse()` assertions (comments, commented rows)
 + convert "Number.RESERVED_CONSTANT" to Number.RESERVED_CONSTANT
++ convert Objects and Arrays??
+
 + support localized currency, number formats
+
 + nodejs examples
   - mocha TDD
   - tape

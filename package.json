@@ -22,6 +22,16 @@
     "url": "https://github.com/dfkaye/wheredoc/issues"
   },
   "homepage": "https://github.com/dfkaye/wheredoc#readme",
+  "keywords": [
+    "TDD",
+    "where",
+    "where-data",
+    "data-table test",
+    "data-driven testing",
+    "mocha",
+    "qunit",
+    "tape"
+  ],
   "devDependencies": {
     "chai": "^4.2.0",
     "mocha": "^8.1.3"
