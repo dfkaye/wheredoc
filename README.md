@@ -3,6 +3,7 @@
 *3 Oct 2020: in progress*
 
 *16 Oct 2020: getting back to it - round trip done; more todos coming*
+*19 Oct 2020: resuming wheredoc group tests, empty doc, empty params, better error messages*
 
 Started: 2 Oct 2020
 
@@ -177,14 +178,15 @@ tape('suite', function(test) {
 
 ## To do
 
-+ better error messaging
-+ more `parse()` assertions (comments, commented rows)
-+ convert "Number.RESERVED_CONSTANT" to Number.RESERVED_CONSTANT
-+ convert Objects and Arrays??
++ done better error messaging
++ done more `parse()` assertions (comments, commented rows)
++ done convert "Number.RESERVED_CONSTANT" to Number.RESERVED_CONSTANT
 
++ convert Objects and Arrays??
 + support localized currency, number formats
 
-+ create base test suites
++ in progress ~ base test suite for wheredoc itself
+
 + create nodejs usage examples
   - mocha TDD
   - tape
