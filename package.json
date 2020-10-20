@@ -1,7 +1,7 @@
 {
   "name": "wheredoc",
   "version": "0.0.1",
-  "description": "\"Reserving namespace for ES6 friendly version of where.js\"",
+  "description": "ES6-friendly version of where.js, data-table-driven support module for JavaScript test libraries.",
   "main": "where.js",
   "type": "module",
   "scripts": {
@@ -26,8 +26,9 @@
     "TDD",
     "where",
     "where-data",
-    "data-table test",
-    "data-driven testing",
+    "data-driven",
+    "data-table",
+    "data-table-driven",
     "mocha",
     "qunit",
     "tape"
