@@ -14,6 +14,10 @@ Test cases incomplete.
 
 Squatting name to replace and deprecate where.js. 
 
+## Run tests
+
+`npm run mocha`
+
 ## Prior art
 
 [where.js](https://github.com/dfkaye/where.js) tests are modeled on spock's where clause and cucumber's scenario table, using these embedded in a three-star comment syntax parsed from inside a function.
@@ -180,10 +184,11 @@ tape('suite', function(test) {
 
 + support localized currency, number formats
 
-+ nodejs examples
++ create base test suites
++ create nodejs usage examples
   - mocha TDD
   - tape
-+ browser examples (using live-server)
++ create browser usage examples (using live-server)
   - mocha BDD
   - qunit
 + Docs

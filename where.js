@@ -37,8 +37,8 @@ function parse({ doc }) {
   });
 
   return {
-    params: data[0],
-    rows: data.slice(1)
+    params: data[0] || [], // fallback empty array
+    rows: data.slice(1) // creates an empty array if data has no rows.
   }
 }
 
@@ -47,22 +47,34 @@ function build({ data, test }) {
   var scenarios = [];
   var errors = [];
 
+  // test is a function
+  if (typeof test != "function") {
+    errors.push(`"test" expected to be a function but was "${typeof test}"`)
+  }
+
   // at least one row
   if (!rows.length) {
-    errors.push(`No values defined for "${params.join(' ')}"`)
+    errors.push(`No values defined for [${params.join(', ')}]`)
   }
 
   // unique params
   if (params.length > new Set(params).size) {
-    errors.push(`Duplicate param names: "${params.join(' ')}".`)
+    errors.push(`Duplicate param names: [${params.join(', ')}]`)
   }
 
   if (errors.length) {
+    // Return early if any errors, with one scenario that throws all messages.
+
     var error = errors.join('\n');
     var apply = function () { throw new Error(error) }
 
     return {
-      scenarios: [{ params, values: rows, apply, error }],
+      scenarios: [{
+        params,
+        values: rows,
+        apply,
+        error
+      }],
       errors
     }
   }
@@ -72,10 +84,11 @@ function build({ data, test }) {
     // - value count equals params length
     //    (should find unbalanced row)
     if (values.length != params.length) {
-      var error = `Row ${row + 1}: Expected ${params.length} values but found ${values.length}.
-      params: ${params.join(', ')}
-      values: ${values.join(', ')}
-      `;
+      var error = [
+        `Row ${row + 1}, expected ${params.length} values but found ${values.length}.`,
+        `params: [${params.join(', ')}]`,
+        `values: [${values.join(', ')}]`
+      ].join('\n');
 
       var apply = function () {
         throw new Error(error)
@@ -90,8 +103,9 @@ function build({ data, test }) {
     // - convert values
     //   done ("null" to null, "undefined" to undefined, "true" ot true, "false" to false)
     //   done  (convert numeric string to Number)
+    //   done  (handle Math.RESERVED_CONSTANTS)
+    //   done  (handle Number.RESERVED_CONSTANTS)
 
-    //   To Do  (handle Number.RESERVED_CONSTANTS)
     //   To Do (handle Object, Array)
 
     values = convert({ values });
@@ -120,9 +134,36 @@ function convert({ values }) {
       var string = value.replace(/\,/g, "");
       var number = Number(string)
 
+      // Number is not NaN.
       if (number === number) {
         return number;
       }
+    }
+
+    if (/^NaN$/.test(value)) {
+      return NaN;
+    }
+
+    if (/^[-]?Infinity$/.test(value)) {
+      return (
+        value === "-Infinity"
+          ? Number.NEGATIVE_INFINITY
+          : Number.POSITIVE_INFINITY
+      );
+    }
+
+    if (/^Number.[A-Z]+/.test(value)) {
+      // Number.NEGATIVE_INFINITY
+      var field = value.split(".")[1];
+
+      return Number[field];
+    }
+
+    if (/^Math.[A-Z]+/.test(value)) {
+      // Math.PI
+      var field = value.split(".")[1];
+
+      return Math[field];
     }
 
     return value;

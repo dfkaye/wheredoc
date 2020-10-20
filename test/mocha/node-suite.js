@@ -1,5 +1,3 @@
-
-
 /*
  * To import a commonJS module:
  *  - import createRequire from 'module'
@@ -22,22 +20,24 @@ const { assert, expect } = chai;
 // const { where, parse } = await import('../../index.js')
 
 import { where, parse, build, convert } from '../../where.js';
+describe('wheredoc', () => {
 
-describe('where', () => {
+  describe('where', () => {
+    var doc = `
+      a | b | c
+      2 | 4 | 6
+    `
+    var test = function (a, b, c) {
+      expect(c).to.equal(a + b);
+    }
 
-  var doc = `
-    a | b | c
-    2 | 4 | 6
-  `
-  var test = function (a, b, c) {
-    expect(c).to.equal(a + b);
-  }
+    var { scenarios, errors } = where({ doc, test })
 
-  var { scenarios, errors } = where({ doc, test })
+    scenarios.forEach(scenario => {
+      it('should work', scenario.apply)
+    })
 
-  scenarios.forEach(scenario => {
-    it('should work', scenario.apply)
-  })
+  });
 
   describe('parse', () => {
 
@@ -50,8 +50,7 @@ describe('where', () => {
      * removes commented rows
      */
 
-    it('template literal', () => {
-
+    it('handles template literals', () => {
       var doc = `
         a | b | c
         // commented row
@@ -60,37 +59,78 @@ describe('where', () => {
         "h" | 'b'  // unbalanced, missing value
       `;
 
-      console.log(parse({ doc }))
+      var data = parse({ doc });
 
+      expect(data.params.length).to.equal(3);
+      expect(data.rows.length).to.equal(3);
     });
 
-    it("multiline string", () => {
+    it("handles multiline strings", () => {
       var doc = "\
         a  |  b  |  c		\n\
+        // commented    \n\
         1  |  2  |  3		\n\
         4  |  3  |  7		\n\
         6  |  6  |  12	\n\
       "
 
-      console.log(parse({ doc }))
+      var data = parse({ doc });
+
+      expect(data.params.length).to.equal(3);
+      expect(data.rows.length).to.equal(3);
     });
 
-    it('empty', () => {
+    it('handles empty string', () => {
+      var doc = "";
+      var data = parse({ doc });
+
+      expect(data.params.length).to.equal(0);
+      expect(data.rows.length).to.equal(0);
+    });
+
+    it('removes empty rows', () => {
       var doc = `
-        // commented row
+        a | b | c
+        1 | 2 | 3
+
+        4 | 5 | 9
       `;
 
-      console.log(parse({ doc }))
+      var data = parse({ doc });
+
+      expect(data.params.length).to.equal(3);
+      expect(data.rows.length).to.equal(2);
+    });
+
+    it('removes commented rows', () => {
+      var doc = `
+        a | b | c
+        1 | 2 | 3
+        // commented row
+        4 | 5 | 9
+      `;
+
+      var data = parse({ doc });
+
+      expect(data.params.length).to.equal(3);
+      expect(data.rows.length).to.equal(2);
     });
   });
 
   describe('build', () => {
 
     var test = function (a, b, c) {
+      /*
+      console.table([
+        ['a', 'b', 'c'].join(" | "),
+        [a, b, c].join(" | ")
+      ]);
+      */
+
       expect(a + b).to.equal(c)
     }
 
-    it('should run scenarios', () => {
+    it('processes valid scenarios', () => {
       var data = {
         params: ["a", "b", "c"],
         rows: [
@@ -109,12 +149,36 @@ describe('where', () => {
       })
     });
 
-    it('should find unbalanced rows', () => {
+    it("errors when test is not a function", () => {
       var data = {
         params: ["a", "b", "c"],
         rows: [
-          ["'h'", '"b"'],
-          []
+          ["1", "2", "3"],
+          ["4", "5", "9"]
+        ]
+      };
+
+      var test = {
+        // should be a function.
+      };
+
+      var { scenarios, errors } = build({ data, test });
+
+      expect(scenarios.length).to.equal(1)
+
+      scenarios.forEach((scenario, index) => {
+        expect(scenario.error).to.equal(errors[index]);
+
+        expect(scenario.apply).to.throw();
+      })
+    });
+
+    it('errors when rows are unbalanced', () => {
+      var data = {
+        params: ["a", "b", "c"],
+        rows: [
+          ["'h'", '"b"'], // first error
+          []              // second error
         ]
       };
 
@@ -123,6 +187,12 @@ describe('where', () => {
       expect(scenarios.length).to.equal(2)
       expect(errors.length).to.equal(2)
 
+      errors.forEach((error, index) => {
+        var msg = `expected ${data.params.length} values but found ${data.rows[index].length}`;
+
+        expect(error).to.include(msg)
+      })
+
       scenarios.forEach((scenario, index) => {
         expect(scenario.error).to.equal(errors[index]);
 
@@ -130,7 +200,7 @@ describe('where', () => {
       })
     })
 
-    it('should find duplicate params', () => {
+    it('errors when params are duplicated', () => {
       var data = {
         params: ["a", "a", "c"],
         rows: [
@@ -149,7 +219,7 @@ describe('where', () => {
       })
     })
 
-    it('should notify on empty data', () => {
+    it('errors when data is empty', () => {
       var data = {
         params: ["a", "b", "c"],
         rows: []
@@ -189,7 +259,10 @@ describe('where', () => {
         "1234.5678",
         "12,345.6789",
         "-0",
-        "-1.23456789e6"
+        "-1.23456789e6",
+        "NaN",
+        "Infinity",
+        "-Infinity"
       ];
       var actual = convert({ values });
 
@@ -197,6 +270,55 @@ describe('where', () => {
       expect(actual[1]).to.equal(12345.6789);
       expect(actual[2]).to.equal(0);
       expect(actual[3]).to.equal(-1234567.89);
+      expect(actual[4]).to.be.NaN;
+      expect(actual[5]).to.equal(Infinity);
+      expect(actual[6]).to.equal(-Infinity);
+    })
+
+    it("string to Number.RESERVED_CONSTANT", () => {
+      var values = [
+        "Number.EPSILON",
+        "Number.MAX_SAFE_INTEGER",
+        "Number.MAX_VALUE",
+        "Number.MIN_SAFE_INTEGER",
+        "Number.MIN_VALUE",
+        "Number.NEGATIVE_INFINITY",
+        "Number.NaN",
+        "Number.POSITIVE_INFINITY"
+      ];
+      var actual = convert({ values });
+
+      expect(actual[0]).to.equal(Number.EPSILON);
+      expect(actual[1]).to.equal(Number.MAX_SAFE_INTEGER);
+      expect(actual[2]).to.equal(Number.MAX_VALUE);
+      expect(actual[3]).to.equal(Number.MIN_SAFE_INTEGER);
+      expect(actual[4]).to.equal(Number.MIN_VALUE);
+      expect(actual[5]).to.equal(Number.NEGATIVE_INFINITY);
+      expect(actual[6]).to.be.NaN;
+      expect(actual[7]).to.equal(Number.POSITIVE_INFINITY);
+    })
+
+    it("string to Math.CONSTANT", () => {
+      var values = [
+        "Math.E",
+        "Math.LN2",
+        "Math.LN10",
+        "Math.LOG2E",
+        "Math.LOG10E",
+        "Math.PI",
+        "Math.SQRT1_2",
+        "Math.SQRT2"
+      ];
+      var actual = convert({ values });
+
+      expect(actual[0]).to.equal(Math.E);
+      expect(actual[1]).to.equal(Math.LN2);
+      expect(actual[2]).to.equal(Math.LN10);
+      expect(actual[3]).to.equal(Math.LOG2E);
+      expect(actual[4]).to.equal(Math.LOG10E);
+      expect(actual[5]).to.equal(Math.PI);
+      expect(actual[6]).to.equal(Math.SQRT1_2);
+      expect(actual[7]).to.equal(Math.SQRT2);
     })
   })
 });
