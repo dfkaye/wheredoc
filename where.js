@@ -13,12 +13,20 @@ function where({ doc, test }) {
 }
 
 function parse({ doc }) {
-  var rows = String(doc).trim()
+  // parse doc as docstring or function containing docstring.
+  // remove comments
+  // match:   var match = fs.match(/(?:where[^\n]*[\n])(([^\|]*\|)+[^\n]*[\n])/);
+  // match && match[1] || ""
+  var rows = Object(doc).toString()
+    .trim()
     .replace(/\/\/[^\n]*/g, '') // remove comments...
     .split('\n'); // and split by newline
 
   var data = [];
 
+  // process rows
+  // trim
+  // return or split on |
   rows.forEach(row => {
     var values = row.trim();
 
@@ -105,15 +113,25 @@ function build({ data, test }) {
     //   done  (convert numeric string to Number)
     //   done  (handle Math.RESERVED_CONSTANTS)
     //   done  (handle Number.RESERVED_CONSTANTS)
+    //   done (handle Object, Array)
 
-    //   To Do (handle Object, Array)
+    //  change the way params are returned for each row
+
+    //   To Do (handle currency, formatted numbers)
 
     values = convert({ values });
 
     // - create row value test invoker
     var apply = function () { return test.apply(null, values) }
 
-    scenarios.push({ params, values, apply });
+    // create params enum
+    var enumerable = {};
+
+    params.forEach((p, i) => {
+      enumerable[p] = values[i];
+    });
+
+    scenarios.push({ params: enumerable, apply });
   })
 
   return { scenarios, errors };
@@ -146,9 +164,9 @@ function convert({ values }) {
 
     if (/^[-]?Infinity$/.test(value)) {
       return (
-        value === "-Infinity"
-          ? Number.NEGATIVE_INFINITY
-          : Number.POSITIVE_INFINITY
+        value < 0
+          ? -Infinity
+          : Infinity
       );
     }
 
@@ -164,6 +182,20 @@ function convert({ values }) {
       var field = value.split(".")[1];
 
       return Math[field];
+    }
+
+    if (value[0] === '[' && value[value.length - 1] === ']') {
+      var array;
+      try { array = Function("return (" + value + ");")(0) }
+      catch (error) { array = error }
+      finally { return array }
+    }
+
+    if (value[0] === '{' && value[value.length - 1] === '}') {
+      var object;
+      try { object = Function("return (" + value + ");")(0) }
+      catch (error) { object = error }
+      finally { return object }
     }
 
     return value;

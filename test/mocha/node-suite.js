@@ -23,20 +23,62 @@ import { where, parse, build, convert } from '../../where.js';
 describe('wheredoc', () => {
 
   describe('where', () => {
-    var doc = `
-      a | b | c
-      2 | 4 | 6
-    `
-    var test = function (a, b, c) {
-      expect(c).to.equal(a + b);
-    }
+    describe('base cases with params', () => {
+      var doc = `
+        a  |  b  |  c
+        1  |  2  |  3
+        4  |  5  |  9
+       10  | 11  | 21
+      `;
 
-    var { scenarios, errors } = where({ doc, test })
+      var test = function (a, b, c) {
+        expect(c).to.equal(a + b);
+      }
 
-    scenarios.forEach(scenario => {
-      it('should work', scenario.apply)
+      where({ doc, test }).scenarios.forEach(scenario => {
+        var p = scenario.params
+
+        it(`with ${p.a} and ${p.b}, should get ${p.c}`, scenario.apply)
+      })
     })
 
+    describe('handles arrays', () => {
+      var doc = `
+          a   |   b   |      c
+        ['a'] | ['b'] | [ 'a', 'b' ]
+      `;
+
+      var test = function (a, b, c) {
+        var actual = a.concat(b);
+
+        expect(c).to.deep.equal(actual);
+      }
+
+      where({ doc, test }).scenarios.forEach(scenario => {
+        var p = scenario.params
+
+        it(`with ${p.a} and ${p.b}, should get ${p.c}`, scenario.apply)
+      })
+    })
+
+    describe('handles objects', () => {
+      var doc = `
+            a     |     b     |       c
+        { 0: 1 }  | { 1: 1 }  | { 0: 1, 1: 1 }
+      `;
+
+      var test = function (a, b, c) {
+        var actual = Object.assign({}, a, b)
+
+        expect(c).to.deep.equal(actual);
+      }
+
+      where({ doc, test }).scenarios.forEach(scenario => {
+        var p = scenario.params;
+
+        it(`with ${p.a} and ${p.b}, should get ${p.c}`, scenario.apply)
+      })
+    })
   });
 
   describe('parse', () => {
@@ -320,5 +362,48 @@ describe('wheredoc', () => {
       expect(actual[6]).to.equal(Math.SQRT1_2);
       expect(actual[7]).to.equal(Math.SQRT2);
     })
+
+    it('string to array', () => {
+      var values = [
+        `[ "one", true, 3 ]`,
+        `[[ "matrix" ], [ "matrix" ]]`,
+        `[{ name: "first" }, { name: "second" }]`
+      ]
+      var actual = convert({ values });
+
+      expect(actual[0]).to.deep.equal(["one", true, 3]);
+      expect(actual[1]).to.deep.equal([["matrix"], ["matrix"]]);
+      expect(actual[2]).to.deep.equal([{ name: "first" }, { name: "second" }]);
+    })
+
+    describe('string to object', () => {
+      it("array, matrix, list", () => {
+        var values = [
+          `{ array: [ "one", true, 3 ] }`,
+          `{ matrix: [[ "matrix" ], [ "matrix" ]] }`,
+          `{ list: [{ name: "first" }, { name: "second" }] }`
+        ]
+        var actual = convert({ values });
+
+        expect(actual[0]).to.deep.equal({ array: ["one", true, 3] });
+        expect(actual[1]).to.deep.equal({ matrix: [["matrix"], ["matrix"]] });
+        expect(actual[2]).to.deep.equal({ list: [{ name: "first" }, { name: "second" }] });
+      })
+
+      it("catches errors", () => {
+        var values = [
+          `{ bonk }`,
+          `{ valueOf: () => { throw new Error("Shazam") } }`
+        ];
+
+        var actual = convert({ values });
+        expect(actual[0]).to.be.an("error")
+        expect(actual[0].message).to.include("bonk is not defined");
+
+        var fn = () => "" + actual[1]
+        expect(fn).to.throw("Shazam");
+      })
+    })
   })
-});
+})
+

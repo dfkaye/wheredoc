@@ -7,13 +7,12 @@
 
 Started: 2 Oct 2020
 
-Data-driven test clauses using docstring-like data tables in JavaScript, in nodejs or browsers.
+Use docstring-like data tables in JavaScript tests, similar to Cucumber `scenario outline` examples or Spock `where` blocks.
 
-Docs incomplete.
-
-Test cases incomplete.
-
-Squatting name to replace and deprecate where.js. 
+Status:
++ Docs incomplete.
++ Test cases incomplete.
++ Squatting name to replace and deprecate where.js. 
 
 ## Run tests
 
@@ -21,7 +20,7 @@ Squatting name to replace and deprecate where.js.
 
 ## Prior art
 
-[where.js](https://github.com/dfkaye/where.js) tests are modeled on spock's where clause and cucumber's scenario table, using these embedded in a three-star comment syntax parsed from inside a function.
+[where.js](https://github.com/dfkaye/where.js) tests are modeled on Spock's `where` clause and Cucumber's scenario outline, using these embedded in a three-asterisk comment syntax parsed from inside a function.
 
 ```js
 it('description', function () {
@@ -33,8 +32,8 @@ it('description', function () {
       6  |  6  |  12
     ***/
 		
-		expect(a + b).toBe(c);
-		expect(c - a).toBe(b);
+		expect(a + b).to.equal(c);
+		expect(c - a).to.equal(b);
   });
 });
 ```
@@ -60,8 +59,8 @@ it('description', function () {
     `,
 
 		test: (a,b,c) => {
-			expect(a + b).toBe(c);
-			expect(c - a).toBe(b);
+			expect(a + b).to.equal(c);
+			expect(c - a).to.equal(b);
 		}
   });
 });
@@ -80,8 +79,8 @@ it('description', function () {
     ",
 
 		test: (a,b,c) => {
-			expect(a + b).toBe(c);
-			expect(c - a).toBe(b);
+			expect(a + b).to.equal(c);
+			expect(c - a).to.equal(b);
 		}
   });
 });
@@ -111,7 +110,7 @@ a | b | c
 ```
 describe('suite', (done) => {
   var test = function (a, b, c) {
-	  expect(a + b).toBe(c);
+	  expect(a + b).to.equal(c);
   }
 
 	where({ doc, test }).each({name, fn} => {
@@ -127,7 +126,7 @@ describe('suite', (done) => {
 ```
 suite('suite', (done) => {
   var assert = function (a, b, c) {
-	  expect(a + b).toBe(c);
+	  expect(a + b).to.equal(c);
   };
 
 	where({ doc, test: assert }).each({name, fn} => {
@@ -181,18 +180,32 @@ tape('suite', function(test) {
 + done better error messaging
 + done more `parse()` assertions (comments, commented rows)
 + done convert "Number.RESERVED_CONSTANT" to Number.RESERVED_CONSTANT
++ done convert Objects and Arrays -- uses `Function("return (" + value +");")(0)`
+  - merge a and b to get c:
+  - { name: 'test' } | { value: 'added' } | { name: 'test', value: 'added' }
+  - concat a and b to get c:
+  - ['a'] | ['b'] | [ 'a', 'b' ]
++ done scenario.params as an enum, e.g., { a: 1, b: 2, c: 3 }
 
-+ convert Objects and Arrays??
 + support localized currency, number formats
+  - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat
+
++ verifying DOM structure, element presence, attributes
 
 + in progress ~ base test suite for wheredoc itself
 
++ try the docstring function that contains a where: label (see below)
+
 + create nodejs usage examples
   - mocha TDD
+  - qunit - https://qunitjs.com/intro/#in-node
   - tape
 + create browser usage examples (using live-server)
   - mocha BDD
   - qunit
+
++ (not covered: jest, jasmine, ava, riteway, cypress)
+
 + Docs
   + Shorten the README
   + Move longer narrative to dfkaye.com blog.
@@ -201,3 +214,66 @@ tape('suite', function(test) {
   + how to import ES6 modules into commonJS.
     - https://nodejs.org/api/esm.html#esm_interoperability_with_commonjs
     - https://exploringjs.com/impatient-js/ch_modules.html#import.meta.url-on-node.js
+
+## docstring function variant - in progress 21 october 2020
+
+```js
+// doc is a docstring or a function containing a docstring. If it's a function,
+// and test is not defined as a function, doc will be used as the test function.
+function where({ doc, test }) {
+  // Object(doc): if doc is nothing, get a base object; else it returns doc unmodified.
+  var fs = Object(doc).toString();
+  var match = fs.match(/(?:where[^\n]*[\n])(([^\|]*\|)+[^\n]*[\n])/);
+  // When match fails to match, it returns null. We check that match exists
+  // and that its second entry which excludes the non-captured group also
+  // exists; if it does, then match[1] is assigned; otherwise fall back to the
+  // empty string.
+  var ds = match && match[1] || "";
+
+// About /(?:where[^\n]*[\n])(([^\|]*\|)+[^\n]*[\n])/
+// That RegExp extracts each row of the data table after the where label (non capture),
+// containing at least one | and newline, and supports multiple formats, starting
+// with a `where:` label inside the doc test function:
+
+//  where: ` ... `;
+//  where: /* ... */; <-- requires trailing semi-colon if no other statements follow>
+//  where: " ... \n\ ... ";
+//  where: () => { .... };
+
+  console.log(ds);
+  
+  var fn = typeof test == 'function'
+    ? test
+    : typeof doc == 'function
+      ? doc
+      : function() { throw new Error(`No test function defined for doc, ${ doc }`) };
+
+    fn(/* params */);
+}
+
+// docstring function
+function doc(a, b, c) {
+  where: `
+  a  |  b  |  c
+  1  |  2  |  3
+  4  |  3  |  7
+  6  |  6  |  12
+  `;
+
+  expect(a + b).to.equal(c);
+  expect(c - a).to.equal(b);
+}
+
+// where returns an array of scenarios, one for each data row, including its
+// name (param list) and a test function that you pass to your testing library's
+// it or test. Here's a destructuring assignment example:
+where({ doc }).scenarios.forEach({ name, test } => {
+  it(name, test);
+});
+
+// If there's a name conflict with `test`, however, you can de-conflict by using
+// the non-destructured scenario (or item or other name), for example:
+where({ doc }).scenarios.forEach(scenario => {
+  test(scenario.name, scenario.test);
+});
+```
