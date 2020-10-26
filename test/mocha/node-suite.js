@@ -17,13 +17,35 @@ const { assert, expect } = chai;
  *  - use top-level await import(module_filepath)
  *  - use destructuring assignment in one step, not after.
  */
-// const { where, parse } = await import('../../index.js')
+var { spec, where, parse, build, convert } = await import('../../where.js')
 
-import { where, parse, build, convert } from '../../where.js';
+// or just use import { ... }
+// import { where, parse, build, convert } from '../../where.js';
+
 describe('wheredoc', () => {
 
+  describe('spec', () => {
+    var test = function (a, b, c) {
+      expect:
+      expect(c).to.equal(a + b);
+
+      where: `
+        a  |  b  |  c
+        1  |  2  |  3
+        4  |  5  |  9
+       10  | 11  | 21
+      `;
+    }
+
+    spec(test).scenarios.forEach(scenario => {
+      var { params: p } = scenario
+
+      it(`with ${p.a} and ${p.b}, should get ${p.c}`, scenario.apply)
+    })
+  });
+
   describe('where', () => {
-    describe('base cases with params', () => {
+    describe('scenario params and apply', () => {
       var doc = `
         a  |  b  |  c
         1  |  2  |  3
@@ -36,7 +58,7 @@ describe('wheredoc', () => {
       }
 
       where({ doc, test }).scenarios.forEach(scenario => {
-        var p = scenario.params
+        var { params: p } = scenario
 
         it(`with ${p.a} and ${p.b}, should get ${p.c}`, scenario.apply)
       })
@@ -55,7 +77,7 @@ describe('wheredoc', () => {
       }
 
       where({ doc, test }).scenarios.forEach(scenario => {
-        var p = scenario.params
+        var { params: p } = scenario
 
         it(`with ${p.a} and ${p.b}, should get ${p.c}`, scenario.apply)
       })
@@ -74,7 +96,7 @@ describe('wheredoc', () => {
       }
 
       where({ doc, test }).scenarios.forEach(scenario => {
-        var p = scenario.params;
+        var { params: p } = scenario;
 
         it(`with ${p.a} and ${p.b}, should get ${p.c}`, scenario.apply)
       })
@@ -84,7 +106,7 @@ describe('wheredoc', () => {
   describe('parse', () => {
 
     /*
-     * returns params and rows
+     * returns params and rows arrays
      * template literal
      * multiline string
      * empty string
@@ -161,25 +183,28 @@ describe('wheredoc', () => {
 
   describe('build', () => {
 
-    var test = function (a, b, c) {
-      /*
-      console.table([
-        ['a', 'b', 'c'].join(" | "),
-        [a, b, c].join(" | ")
-      ]);
-      */
+    /*
+     * returns scenarios and errors arrays
+     * errors when test is not a function
+     * each problem scenario contains params and values arrays, apply function which throws, and error message
+     * each clean scenario contains params enum and apply function
+     * empty string
+     * removes empty rows
+     * removes commented rows
+     */
 
-      expect(a + b).to.equal(c)
-    }
-
-    it('processes valid scenarios', () => {
+    it('creates scenarios from valid spec', () => {
       var data = {
         params: ["a", "b", "c"],
         rows: [
           ["1", "2", "3"],
-          ["4", "5", "9"]
+          ["4", "-5", "-1"]
         ]
       };
+
+      var test = function (a, b, c) {
+        expect(a + b).to.equal(c)
+      }
 
       var { scenarios, errors } = build({ data, test });
 
@@ -188,93 +213,116 @@ describe('wheredoc', () => {
 
       scenarios.forEach(scenario => {
         scenario.apply();
+
+        expect(scenario.apply).not.to.throw();
       })
     });
 
-    it("errors when test is not a function", () => {
-      var data = {
-        params: ["a", "b", "c"],
-        rows: [
-          ["1", "2", "3"],
-          ["4", "5", "9"]
-        ]
-      };
+    describe("scenario.apply() throws", () => {
+      it("errors when test is not a function", () => {
+        var data = {
+          params: ["a", "b", "c"],
+          rows: [
+            ["1", "2", "3"],
+            ["4", "5", "9"]
+          ]
+        };
 
-      var test = {
-        // should be a function.
-      };
+        var test = {
+          // should be a function.
+        };
 
-      var { scenarios, errors } = build({ data, test });
+        var { scenarios, errors } = build({ data, test });
 
-      expect(scenarios.length).to.equal(1)
+        expect(scenarios.length).to.equal(1)
+        expect(errors.length).to.equal(1);
+        expect(scenarios[0].error).to.equal(errors[0]);
+        expect(scenarios[0].apply).to.throw();
 
-      scenarios.forEach((scenario, index) => {
-        expect(scenario.error).to.equal(errors[index]);
+        // scenarios.forEach((scenario, index) => {
+        //   expect(scenario.error).to.equal(errors[index]);
+        //   
+        //   expect(scenario.apply).to.throw();
+        // })
+      });
 
-        expect(scenario.apply).to.throw();
+      it('errors when rows are unbalanced', () => {
+        var data = {
+          params: ["a", "b", "c"],
+          rows: [
+            ["'h'", '"b"'], // first error
+            []              // second error
+          ]
+        };
+
+        var test = function (a, b, c) {
+          expect(a + b).to.equal(c)
+        }
+
+        var { scenarios, errors } = build({ data, test });
+
+        expect(scenarios.length).to.equal(2)
+        expect(errors.length).to.equal(2)
+
+        errors.forEach((error, index) => {
+          var msg = `expected ${data.params.length} values but found ${data.rows[index].length}`;
+
+          expect(error).to.include(msg)
+        })
+
+        scenarios.forEach((scenario, index) => {
+          expect(scenario.error).to.equal(errors[index]);
+
+          expect(scenario.apply).to.throw();
+        })
       })
-    });
 
-    it('errors when rows are unbalanced', () => {
-      var data = {
-        params: ["a", "b", "c"],
-        rows: [
-          ["'h'", '"b"'], // first error
-          []              // second error
-        ]
-      };
+      it('errors when params are duplicated', () => {
+        var data = {
+          params: ["a", "a", "c"],
+          rows: [
+            ["1", "2", "3"]
+          ]
+        };
 
-      var { scenarios, errors } = build({ data, test });
+        var test = function (a, b, c) {
+          expect(a + b).to.equal(c)
+        }
 
-      expect(scenarios.length).to.equal(2)
-      expect(errors.length).to.equal(2)
+        var { scenarios, errors } = build({ data, test });
 
-      errors.forEach((error, index) => {
-        var msg = `expected ${data.params.length} values but found ${data.rows[index].length}`;
+        expect(errors.length).to.equal(1);
+        expect(scenarios[0].error).to.equal(errors[0]);
+        expect(scenarios[0].apply).to.throw();
 
-        expect(error).to.include(msg)
+        // scenarios.forEach(scenario => {
+        //   expect(scenario.error).to.equal(errors[0]);
+
+        //   expect(scenario.apply).to.throw();
+        // })
       })
 
-      scenarios.forEach((scenario, index) => {
-        expect(scenario.error).to.equal(errors[index]);
+      it('errors when data is empty', () => {
+        var data = {
+          params: ["a", "b", "c"],
+          rows: []
+        };
 
-        expect(scenario.apply).to.throw();
-      })
-    })
+        var test = function (a, b, c) {
+          expect(a + b).to.equal(c)
+        }
 
-    it('errors when params are duplicated', () => {
-      var data = {
-        params: ["a", "a", "c"],
-        rows: [
-          ["1", "2", "3"]
-        ]
-      };
+        var { scenarios, errors } = build({ data, test });
 
-      var { scenarios, errors } = build({ data, test });
+        expect(errors.length).to.equal(1);
+        expect(scenarios[0].error).to.equal(errors[0]);
+        expect(scenarios[0].apply).to.throw();
 
-      expect(errors.length).to.equal(1);
+        // scenarios.forEach(scenario => {
+        //   expect(scenario.error).to.equal(errors[0]);
 
-      scenarios.forEach(scenario => {
-        expect(scenario.error).to.equal(errors[0]);
-
-        expect(scenario.apply).to.throw();
-      })
-    })
-
-    it('errors when data is empty', () => {
-      var data = {
-        params: ["a", "b", "c"],
-        rows: []
-      };
-
-      var { scenarios, errors } = build({ data, test });
-
-      expect(errors.length).to.equal(1);
-
-      scenarios.forEach(scenario => {
-        expect(scenario.error).to.equal(errors[0]);
-
-        expect(scenario.apply).to.throw();
+        //   expect(scenario.apply).to.throw();
+        // })
       })
     })
   })
@@ -393,7 +441,9 @@ describe('wheredoc', () => {
       it("catches errors", () => {
         var values = [
           `{ bonk }`,
-          `{ valueOf: () => { throw new Error("Shazam") } }`
+          `{ valueOf: () => { throw new Error("Shazam") } }`,
+          `{ { }`,
+          `[ [ ]`
         ];
 
         var actual = convert({ values });
@@ -402,6 +452,12 @@ describe('wheredoc', () => {
 
         var fn = () => "" + actual[1]
         expect(fn).to.throw("Shazam");
+
+        expect(actual[2]).to.be.an("error")
+        expect(actual[2].message).to.include("Unexpected token");
+
+        expect(actual[3]).to.be.an("error")
+        expect(actual[3].message).to.include("Unexpected token");
       })
     })
   })
