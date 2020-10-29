@@ -37,9 +37,6 @@ function where({ doc, test }) {
 
 function parse({ doc }) {
   // parse doc as docstring or function containing docstring.
-  // remove comments
-  // match:   var match = fs.match(/(?:where[^\n]*[\n])(([^\|]*\|)+[^\n]*[\n])/);
-  // match && match[1] || ""
   var lines = Object(doc).toString()
     .trim()
     .replace(/\/\/[^\n]*/g, '') // remove comments...
@@ -52,6 +49,13 @@ function parse({ doc }) {
   // return or split on |
   lines.forEach(line => {
     var values = line.trim();
+
+    // remove external fence posts (| separators)
+    // before: | a | b | c |
+    // after:  a | b | c
+    if (/^\|(.)*\|$/.test(values)) {
+      values = values.substring(1, values.length - 1).trim()
+    }
 
     if (values.length == 0) {
       // Skip empty line.
@@ -68,7 +72,7 @@ function parse({ doc }) {
   });
 
   return {
-    params: rows[0] || [], // fallback empty array
+    params: rows[0] || [], // creates an empty array if data has no params
     rows: rows.slice(1) // creates an empty array if data has no rows.
   }
 }
@@ -110,12 +114,12 @@ function build({ data, test }) {
   }
 
   // row-level
-  rows.forEach((values, row) => {
+  rows.forEach((values, i) => {
     // - value count equals params length
     //    (should find unbalanced row)
     if (values.length != params.length) {
       var error = [
-        `Row ${row + 1}, expected ${params.length} values but found ${values.length}.`,
+        `Row ${i + 1}, expected ${params.length} values but found ${values.length}.`,
         `params: [${params.join(', ')}]`,
         `values: [${values.join(', ')}]`
       ].join('\n');
@@ -142,19 +146,19 @@ function build({ data, test }) {
 
     values = convert({ values });
 
+    // create params enum
+    // params = map({ params, values })
+
     // - create row value test invoker
     var apply = function () {
       return test.apply(null, values)
     }
 
-    // create params enum
-    var enumerable = {};
-
-    params.forEach((p, i) => {
-      enumerable[p] = values[i];
+    scenarios.push({
+      // create params enum
+      params: map({ params, values }),
+      apply
     });
-
-    scenarios.push({ params: enumerable, apply });
   })
 
   return { scenarios, errors };
@@ -166,13 +170,13 @@ function convert({ values }) {
       // Gist: https://gist.github.com/dfkaye/ce346446dee243173cd199e51b0c51ac
       // return (true).toString() === value;
 
-      return evaluate(value)
+      return evaluate({ value })
     }
 
     if (/^(null|undefined)$/.test(value)) {
       // return value === "null" ? null : undefined;
 
-      return evaluate(value)
+      return evaluate({ value })
     }
 
     if (/\d+/g.test(value) && !/[\'|\"]/g.test(value)) {
@@ -197,7 +201,7 @@ function convert({ values }) {
           : Infinity
       );
       */
-      return evaluate(value)
+      return evaluate({ value })
     }
 
     if (/^Number.[A-Z]+/.test(value)) {
@@ -205,7 +209,7 @@ function convert({ values }) {
       // var field = value.split(".")[1];
       // return Number[field];
 
-      return evaluate(value)
+      return evaluate({ value })
     }
 
     if (/^Math.[A-Z]+/.test(value)) {
@@ -213,13 +217,13 @@ function convert({ values }) {
       //var field = value.split(".")[1];
       // return Math[field];
 
-      return evaluate(value)
+      return evaluate({ value })
     }
 
     if (/^([\[](.)+[\]])|([\{](.)+[\}])$/.test(value)) {
       // Array or Object literal
       try {
-        var object = evaluate(value)
+        var object = evaluate({ value })
 
         return object
       }
@@ -233,6 +237,16 @@ function convert({ values }) {
   })
 }
 
-function evaluate(value) {
+function evaluate({ value }) {
   return Function("return (" + value + ");").apply(0)
+}
+
+function map({ params, values }) {
+  var map = {}
+
+  params.forEach((p, i) => {
+    map[p] = values[i]
+  })
+
+  return map
 }

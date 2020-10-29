@@ -1,11 +1,20 @@
 # wheredoc
-
+Started: 2 Oct 2020
 *3 Oct 2020: in progress*
-
+*irrigation, faucet, buddleia, downspout drainage, fence post*
 *16 Oct 2020: getting back to it - round trip done; more todos coming*
 *19 Oct 2020: resuming wheredoc group tests, empty doc, empty params, better error messages*
+*dirt redistribution (berms)*
+*19-20 Oct: docstring variant started*
+*26-28 Oct 2020:
+- tests not complete as they should be as design works but not well thought out;
+- docstring variant supports both where(spec) or where({ doc, test });
+- better regex for row extractions
+- doctring in spec function demarcated by a `where:` label, following by multiline string `...`;
+- support testing of the transformation process by exporting `where.doc.<method>` namespace;
+- refactoring the new design in draft.js;
+- supports external fence posts ( | a | b | c | OR a | b | c);
 
-Started: 2 Oct 2020
 
 Use docstring-like data tables in JavaScript tests, similar to Cucumber `scenario outline` examples or Spock `where` blocks.
 
@@ -20,7 +29,7 @@ Status:
 
 ## Prior art
 
-[where.js](https://github.com/dfkaye/where.js) tests are modeled on Spock's `where` clause and Cucumber's scenario outline, using these embedded in a three-asterisk comment syntax parsed from inside a function.
+[where.js](https://github.com/dfkaye/where.js) tests are modeled on Spock's `where:` block and Cucumber's scenario outline `Examples:` block, using these embedded in a three-asterisk comment syntax parsed from inside a function.
 
 ```js
 it('description', function () {
@@ -40,13 +49,21 @@ it('description', function () {
 
 We took that approach because at the time (2014) JavaScript did not support multi-line strings as neatly as a function comment, and the template literal syntax was not yet implemented.
 
-The goal of that [heredoc](https://en.wikipedia.org/wiki/Here_document) style was to make data-driven tests easy to read and write. As "cool" as it felt to write at the time, in between states of stress and exhaustion, I now think that kind of cleverness costs too much to maintain.
+The goal of that [heredoc](https://en.wikipedia.org/wiki/Here_document) style was to make data-driven tests easy to read and write.
+
+As "cool" as it felt to write at the time, in between states of stress and exhaustion, I now think that kind of cleverness costs too much to maintain.
 
 And ease of maintenance is one of the points of test-driven development.
 
+(Update 28 Oct 2020: Incorrect. The maintenance problem arose due to "where" the where function is called. Once that is corrected in the new design, then the logic for error messaging, strategies, etc., is drastically simplified.)
+
 ## Simplifying
 
-[wheredoc](https://github.com/dfkaye/wheredoc) uses a simpler setup to reduce the cleverness, using a test specifier with a `doc` field pointing to a template literal string instead of a special comment syntax, and a `test` field pointing to a function containing the assertions.
+*Need to update this: it is now false*
+
+[wheredoc](https://github.com/dfkaye/wheredoc) supports a simpler setup to reduce the cleverness, using a test specifier with a `doc` field pointing to a template literal string instead of a special comment syntax, and a `test` field pointing to a function containing the assertions.
+
+`where: \`...\`;`
 
 ```js
 it('description', function () {
@@ -88,11 +105,11 @@ it('description', function () {
 
 ## Decoupling
 
-[wheredoc](https://github.com/dfkaye/wheredoc) no longer supports the notions of log](https://github.com/dfkaye/where.js#log) or [intercept](https://github.com/dfkaye/where.js#intercept). These were added to where.js for the sake of identifying individual rows within a table where the expectation fails.
+[wheredoc](https://github.com/dfkaye/wheredoc) no longer supports the notions of log](https://github.com/dfkaye/where.js#log) or [intercept](https://github.com/dfkaye/where.js#intercept). These were added to where.js for the sake of identifying individual rows within a table where the expectation fails and printing (pass) or (fail) next to them in the test results.
 
-As a result, instead of the `where` clause appearing inside of `it` or `test` statements, `where` generates row data and returns an array. You then call `map` or `forEach` on that array, accepting a function param in your iterator, and then calling that function which in turn runs your `test` function containing the assertions.
+Now, instead of the `where` clause appearing inside of `it` or `test` statements, `where` generates row data and returns an array. You then call `map` or `forEach` on that array, accepting a function param in your iterator, and then calling that function which in turn runs your `test` function containing the assertions.
 
-That now de-couples the `where` clause from the mechanics of the test framework. There is no more need of defining a framework-specific [strategy](https://github.com/dfkaye/where.js#strategy).
+That approach de-couples the `where` clause from the mechanics of the test framework. There is no more need of defining a framework-specific [strategy](https://github.com/dfkaye/where.js#strategy).
 
 ## Examples
 
@@ -186,15 +203,14 @@ tape('suite', function(test) {
   - concat a and b to get c:
   - ['a'] | ['b'] | [ 'a', 'b' ]
 + done scenario.params as an enum, e.g., { a: 1, b: 2, c: 3 }
++ done: try the docstring function that contains a where: label (see below)
 
 + support localized currency, number formats
   - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat
 
 + verifying DOM structure, element presence, attributes
 
-+ in progress ~ base test suite for wheredoc itself
-
-+ try the docstring function that contains a where: label (see below)
++ **in progress**: base test suite for wheredoc itself
 
 + create nodejs usage examples
   - mocha TDD
@@ -267,9 +283,11 @@ function doc(a, b, c) {
 // where returns an array of scenarios, one for each data row, including its
 // name (param list) and a test function that you pass to your testing library's
 // it or test. Here's a destructuring assignment example:
-where({ doc }).scenarios.forEach({ name, test } => {
-  it(name, test);
-});
+spec(test).scenarios.forEach(scenario => {
+  var { params: p } = scenario
+
+  it(`with ${p.a} and ${p.b}, should get ${p.c}`, scenario.apply)
+})
 
 // If there's a name conflict with `test`, however, you can de-conflict by using
 // the non-destructured scenario (or item or other name), for example:

@@ -1,13 +1,23 @@
 /*
- * To import a commonJS module:
- *  - import createRequire from 'module'
- *  - set require = createRequire(import.meta.url);
- *  - require the module via its filepath, including extension.
- *  - destructuring assignment after module is loaded.
+ * This suite is run with mocha and uses chai expect.
+ * Run this suite from wheredoc root using:
+ * 
+ *    npm run mocha
+ * 
+ * Suite uses import syntax. Dependencies can be required or imported per the
+ * steps outlined next.
  */
+
+/*
+* To import a commonJS module:
+*  - import createRequire from 'module'
+*  - set require = createRequire(import.meta.url);
+*  - require the module via its filepath, including extension.
+*  - destructuring assignment after module is loaded.
+*/
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-const chai = require("../../node_modules/chai/chai.js");
+const chai = require("chai");
 const { assert, expect } = chai;
 
 /*
@@ -30,10 +40,10 @@ describe('wheredoc', () => {
       expect(c).to.equal(a + b);
 
       where: `
-        a  |  b  |  c
-        1  |  2  |  3
-        4  |  5  |  9
-       10  | 11  | 21
+      |  a  |  b  |  c |
+      |  1  |  2  |  3 |
+      |  4  |  5  |  9 |
+      | 10  | 11  | 21 |
       `;
     }
 
@@ -328,6 +338,14 @@ describe('wheredoc', () => {
   })
 
   describe('convert', () => {
+    it("string to zero", () => {
+      var values = ["0", "-0"];
+      var actual = convert({ values });
+
+      expect(actual[0]).to.equal(0);
+      expect(actual[1]).to.equal(-0);
+    });
+
     it('string to boolean', () => {
       var values = ["true", "false"];
       var actual = convert({ values });
@@ -440,10 +458,10 @@ describe('wheredoc', () => {
 
       it("catches errors", () => {
         var values = [
-          `{ bonk }`,
-          `{ valueOf: () => { throw new Error("Shazam") } }`,
-          `{ { }`,
-          `[ [ ]`
+          `{ bonk }`, // not defined
+          `{ valueOf: () => { throw new Error("Shazam") } }`, // throws
+          `{ { }`, // unexpected token
+          `[ [ ]`  // unexpected token
         ];
 
         var actual = convert({ values });
