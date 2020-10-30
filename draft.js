@@ -1,4 +1,34 @@
-/* draft of API refactoring */
+/*
+  draft of API refactoring
+
+  import { where } from "wheredoc";
+
+  describe("...", () => {
+    where((a, b, c) => {
+      where: `
+      a  |  b  |  c
+      1  |  2  |  3
+      4  |  5  |  9
+      'a' | 'b' | 'ab'
+      `;
+
+      expect(c).to.equal(a + b)
+    }).forEach(scenario => {
+      var { params: p, test } = scenario
+
+      it(`with ${p.a} and ${p.b}, should get ${p.c}`, test)
+    })
+  })
+
+  // API underneath
+  where.doc.build
+    where.doc.parse
+    where.doc.correct
+    where.doc.scenario
+      where.doc.convert
+        where.doc.evaluate
+      where.doc.map
+*/
 export function where(spec) {
   var { doc, test } = Object(spec);
 
@@ -26,73 +56,79 @@ export function where(spec) {
 }
 
 where.doc = {
-  build, parse, outline, scenario, convert, evaluate, map
+  build, parse, correct, scenario, convert, evaluate, map
 }
 
+// scenarios
 function build({ doc, test }) {
   var { labels, rows } = parse({ doc });
 
-  // outline errors
+  // corrections
   // - test not a function
   // - no data rows
+  // - no labels
   // - duplicate labels
-  // - labels don't start wih a-z, $, _
-  var corrections = outline({ labels, rows, test });
+  // - labels don't start wih a-z, $, _, and/or contain whitespace
+  var corrections = correct({ labels, rows, test });
 
-  if (corrections) {
+  if (corrections.length) {
     return corrections
   }
 
   // return scenarios
-  return rows.map((entries, i) => {
-    return scenario({ labels, entries, row: i + 1 })
+  return rows.map((tokens, i) => {
+    return scenario({ labels, tokens, row: i + 1 })
   })
 }
 
+// parse doc as docstring or function containing docstring.
 function parse({ doc }) {
-  // parse doc as docstring or function containing docstring.
-  var lines = Object(doc).toString()
-    .trim()
-    .replace(/\/\/[^\n]*/g, '') // remove comments...
-    .split('\n'); // and split by newline
+  var lines = Object(doc).toString().trim()
+    // remove line comments.
+    .replace(/\/\/[^\n]*/g, '')
+    // split into lines.
+    .split('\n');
 
   var rows = [];
 
   // process lines
   // trim
   // return or split on |
-  lines.forEach(line => {
-    var values = line.trim();
+  lines.forEach(text => {
+    var line = text.trim();
 
     // remove external fence posts (| separators)
     // before: | a | b | c |
     // after:  a | b | c
-    if (/^\|(.)*\|$/.test(values)) {
-      values = values.substring(1, values.length - 1).trim()
+    if (/^\|(.)*\|$/.test(line)) {
+      line = line.substring(1, line.length - 1).trim()
     }
 
-    if (values.length == 0) {
+    if (line.length == 0) {
       // Skip empty line.
       return
     }
 
-    var entries = [];
+    var tokens = [];
 
-    values.split('|').forEach(value => {
-      entries.push(String(value).trim());
+    line.split('|').forEach(token => {
+      tokens.push(String(token).trim());
     })
 
-    rows.push(entries);
+    rows.push(tokens);
   });
 
   return {
-    labels: rows[0] || [], // creates an empty array if data has no labels
-    rows: rows.slice(1) // creates an empty array if data has no rows.
+    // Assign an empty array if data has no labels.
+    labels: rows[0] || [],
+    // Create an empty array if data has no rows.
+    rows: rows.slice(1)
   }
 }
 
-function outline({ labels, rows, test }) {
-  var corrections;
+// return list of outline corrections to be made
+function correct({ labels, rows, test }) {
+  var corrections = [];
   var errors = []
 
   // test is not a function
@@ -102,45 +138,57 @@ function outline({ labels, rows, test }) {
 
   // no data rows
   if (!rows.length) {
-    errors.push(`No values defined for [${labels.join(', ')}]`)
+    errors.push(`No data rows defined for [${labels.join(', ')}]`)
+  }
+
+  // no labels
+  if (!labels.length) {
+    errors.push(`No labels defined for [${labels.join(', ')}]`)
   }
 
   // duplicate labels
   if (labels.length > new Set(labels).size) {
-    errors.push(`Duplicate labels: [${labels.join(', ')}]`)
+    var visited = {};
+    var dupes = {};
+
+    labels.forEach(key => {
+      if (key in visited && !(key in dupes)) {
+        dupes[key] = key
+      }
+      visited[key] = key
+    })
+
+    errors.push(`Duplicate labels: [${Object.keys(dupes).join(', ')}]`)
   }
 
-  // labels don't start wih A-z, $, _
+  // labels don't start wih A-z, $, _, and/or contains whitespace.
   labels.forEach(label => {
-    if (!/^[A-z\$\_]/.test(label)) {
-      errors.push(`Label ${label} expected to start with A-z, $, or _ (X, x, $x, _x)`)
+    if (!/^[A-z\$\_]([^\s])*$/.test(label)) {
+      errors.push(`Label "${label}" expected to start with A-z, $, or _ (X, x, $x, _x)`)
     }
   })
 
   if (errors.length) {
     var error = errors.join('\n');
-    var correction = {
-      labels,
-      rows,
-      error,
-      test: function () { throw new Error(error) }
-    }
+    var test = function () { throw new Error(error) }
+    var correction = { labels, rows, error, test }
 
-    corrections = [correction]
+    corrections.push(correction)
   }
 
   return corrections;
 }
 
-function scenario({ labels, entries, row }) {
+// returns a test-scenario { params, test } or an error-scenario { values, labels, error, test }
+function scenario({ labels, tokens, row }) {
   var errors = []
 
-  // unbalanced labels.length != entries.length
-  if (labels.length != entries.length) {
+  // unbalanced labels.length != tokens.length
+  if (labels.length != tokens.length) {
     var message = [
       `Row ${row}`,
-      `expected ${labels.length} values`,
-      `but found ${entries.length}.`
+      `expected ${labels.length} tokens`,
+      `but found ${tokens.length}.`
     ].join(', ');
 
     errors.push(message);
@@ -148,16 +196,13 @@ function scenario({ labels, entries, row }) {
 
   if (errors.length) {
     var error = errors.join("\n")
+    var test = function () { throw new Error(error) }
+    var values = tokens;
 
-    return {
-      values: entries,
-      labels,
-      error,
-      test: function () { throw new Error(error) }
-    };
+    return { values, labels, error, test };
   }
 
-  var values = convert({ entries })
+  var values = convert({ tokens })
 
   return {
     params: map({ params, values }),
@@ -165,21 +210,75 @@ function scenario({ labels, entries, row }) {
   };
 }
 
-function convert({ entries }) {
-  return entries.map(value => {
+// return real values:
+// false, true, null, undefined, numbers, NaN, Math and Number constants,
+// object and array literals.
+// functions not supported
+// quoted strings returned as is.
+function convert({ tokens }) {
+  var expressions = {
+    reBoolean: /^(false|true)$/,
+    reVoid: /^(null|undefined)$/,
+    reNaN: /^NaN$/,
+    reInfinity: /^[-]?Infinity$/,
+    reMathConstant: /^Math.[A-Z]+/,
+    reNumberConstant: /^Number.[A-Z]+/,
+    objectOrArrayLiteral: {
+      test: function (token) {
+        var o = token[0] == "{" && token[token.length - 1] == "}";
+        var a = token[0] == "[" && token[token.length - 1] == "]";
 
-    if (/test/.test(value)) {
-      return evaluate({ value })
+        return o || a;
+      }
+    }
+  }
+
+  return tokens.map(token => {
+    // Return from the possibly not NaN numeric case first.
+    if (/\d+/g.test(token) && !/[\'|\"]/g.test(token)) {
+      var string = token.replace(/\,/g, "");
+      var number = Number(string)
+
+      // Use number if it's not NaN.
+      if (number === number) {
+        return number;
+      }
     }
 
-    return value
+    // Otherwise try each expression test until we get a match. If we get one,
+    // try to evaluate it. Assign success or failure to the value variable,
+    // and halt processing of some() by returning match.
+
+    var value = token;
+
+    Object.keys(expressions).some(expression => {
+      var match = expression.test(token)
+
+      if (match) {
+        try {
+          value = evaluate({ token })
+        }
+        catch (error) {
+          value = error
+        }
+        finally {
+          // This stops some from continuing.
+          return match
+        }
+      }
+    })
+
+    // Default case, edifyingly annotated.
+    return value;
   })
 }
 
-function evaluate({ value }) {
-  return Function("return (" + value + ");").call()
+// return real value, convert tokens helper
+function evaluate({ token }) {
+  return Function("return (" + token + ");").call()
 }
 
+// return enum { a: 1, b: 2 }
 function map({ labels, values }) {
   var params = {}
 

@@ -289,7 +289,7 @@ describe('wheredoc', () => {
 
       it('errors when params are duplicated', () => {
         var data = {
-          params: ["a", "a", "c"],
+          params: ["a", "a", "b", "b", "c"],
           rows: [
             ["1", "2", "3"]
           ]
@@ -334,6 +334,42 @@ describe('wheredoc', () => {
         //   expect(scenario.apply).to.throw();
         // })
       })
+
+      it('errors when a param label does not start with A-z, $, or _', () => {
+        var data = {
+          params: ["9", "#", "%", "$ok", "_ok"],
+          rows: [
+            ["1", "2", "3", "4"]
+          ]
+        };
+
+        var test = function (a, b, c) {
+          expect(a + b).to.equal(c)
+        }
+
+        var { scenarios, errors } = build({ data, test });
+
+        expect(errors.length).to.equal(3)
+        expect(scenarios[0].apply).to.throw();
+      })
+
+      it('errors on an empty or whitespace param names', () => {
+        var data = {
+          params: ["", " "],
+          rows: [
+            ["1", "2", "3", "4"]
+          ]
+        };
+
+        var test = function (a, b, c) {
+          expect(a + b).to.equal(c)
+        }
+
+        var { scenarios, errors } = build({ data, test });
+
+        expect(errors.length).to.equal(2)
+        expect(scenarios[0].apply).to.throw();
+      })
     })
   })
 
@@ -370,7 +406,8 @@ describe('wheredoc', () => {
         "-1.23456789e6",
         "NaN",
         "Infinity",
-        "-Infinity"
+        "-Infinity",
+        ".1"
       ];
       var actual = convert({ values });
 
@@ -381,6 +418,7 @@ describe('wheredoc', () => {
       expect(actual[4]).to.be.NaN;
       expect(actual[5]).to.equal(Infinity);
       expect(actual[6]).to.equal(-Infinity);
+      expect(actual[7]).to.equal(0.1);
     })
 
     it("string to Number.RESERVED_CONSTANT", () => {

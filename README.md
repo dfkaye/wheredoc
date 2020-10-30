@@ -7,14 +7,14 @@ Started: 2 Oct 2020
 *dirt redistribution (berms)*
 *19-20 Oct: docstring variant started*
 *26-28 Oct 2020:
-- tests not complete as they should be as design works but not well thought out;
+- tests not complete as they should be; design works seems hard to follow (and so do the tests);
 - docstring variant supports both where(spec) or where({ doc, test });
 - better regex for row extractions
 - doctring in spec function demarcated by a `where:` label, following by multiline string `...`;
 - support testing of the transformation process by exporting `where.doc.<method>` namespace;
 - refactoring the new design in draft.js;
 - supports external fence posts ( | a | b | c | OR a | b | c);
-
+*29-30 Oct 2020: draft about ready for re-testing; changed outline to correct, added corrections;*
 
 Use docstring-like data tables in JavaScript tests, similar to Cucumber `scenario outline` examples or Spock `where` blocks.
 
@@ -29,7 +29,7 @@ Status:
 
 ## Prior art
 
-[where.js](https://github.com/dfkaye/where.js) tests are modeled on Spock's `where:` block and Cucumber's scenario outline `Examples:` block, using these embedded in a three-asterisk comment syntax parsed from inside a function.
+[where.js](https://github.com/dfkaye/where.js) tests are modeled on [Spock's `where:` block](http://spockframework.org/spock/docs/1.0/data_driven_testing.html) and [Cucumber's scenario outline `Examples:` block](https://javapointers.com/automation/cucumber/cucumber-scenario-outline-example/), using these embedded in a three-asterisk comment syntax parsed from inside a function.
 
 ```js
 it('description', function () {

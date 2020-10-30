@@ -94,8 +94,25 @@ function build({ data, test }) {
 
   // unique params
   if (params.length > new Set(params).size) {
-    errors.push(`Duplicate param names: [${params.join(', ')}]`)
+    var visited = {};
+    var dupes = {};
+
+    params.forEach(p => {
+      if (p in visited && !(p in dupes)) {
+        dupes[p] = p
+      }
+      visited[p] = p
+    })
+
+    errors.push(`Duplicate param names: [${Object.keys(dupes).join(', ')}]`)
   }
+
+  // params must start with A-z, $, or _, and contain no whitespace
+  params.forEach(param => {
+    if (!/^[A-z\$\_]([^\s])*$/.test(param)) {
+      errors.push(`Param "${param}" expected to start with A-z, $, or _ (X, x, $x, _x)`)
+    }
+  })
 
   // Return early if any errors, with one scenario that throws all messages.
   if (errors.length) {
@@ -179,16 +196,6 @@ function convert({ values }) {
       return evaluate({ value })
     }
 
-    if (/\d+/g.test(value) && !/[\'|\"]/g.test(value)) {
-      var string = value.replace(/\,/g, "");
-      var number = Number(string)
-
-      // Number is not NaN.
-      if (number === number) {
-        return number;
-      }
-    }
-
     if (/^NaN$/.test(value)) {
       return NaN;
     }
@@ -220,7 +227,19 @@ function convert({ values }) {
       return evaluate({ value })
     }
 
-    if (/^([\[](.)+[\]])|([\{](.)+[\}])$/.test(value)) {
+    if (/\d+/g.test(value) && !/[\'|\"]/g.test(value)) {
+      // contains a numeral: .1, +1, -1, 1e1
+      var string = value.replace(/\,/g, "");
+      var number = Number(string)
+
+      // Use number if it's not NaN.
+      if (number === number) {
+        return number;
+      }
+    }
+
+    if (value[0] == "{" && value[value.length - 1] == "}"
+      || value[0] == "[" && value[value.length - 1] == "]") {
       // Array or Object literal
       try {
         var object = evaluate({ value })
