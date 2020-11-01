@@ -253,8 +253,8 @@ function convert({ tokens }) {
 
     var value = token;
 
-    Object.keys(expressions).some(expression => {
-      var match = expression.test(token)
+    Object.keys(expressions).some(name => {
+      var match = expressions[name].test(token)
 
       if (match) {
         try {
