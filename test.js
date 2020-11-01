@@ -102,6 +102,19 @@ describe("wheredoc", () => {
   })
 
   describe('where.doc.convert() tokens to values', () => {
+    it("strings are unchanged", () => {
+      var tokens = [
+        "5%",
+        "5!",
+        "$5",
+        "6 * 6",
+        "He said, \"Hello.\""
+      ]
+      var actual = where.doc.convert({ tokens });
+
+      expect(actual).to.deep.equal(tokens);
+    })
+
     it("string to zero", () => {
       var tokens = ["0", "-0"];
       var actual = where.doc.convert({ tokens });
@@ -222,7 +235,7 @@ describe("wheredoc", () => {
         expect(actual[2]).to.deep.equal({ list: [{ name: "first" }, { name: "second" }] });
       })
 
-      it("catches errors", () => {
+      it("catches evaluation errors", () => {
         var tokens = [
           `{ bonk }`, // not defined
           `{ valueOf: () => { throw new Error("Shazam") } }`, // throws
