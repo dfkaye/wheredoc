@@ -21,14 +21,14 @@
   })
 
   // API underneath
-  where.doc.build
+  where.doc.factory
     where.doc.parse
-    where.doc.correct
+    where.doc.analyze
     where.doc.scenario
       where.doc.convert
-        where.doc.evaluate
       where.doc.map
 */
+
 export function where(spec) {
   var { doc, test } = Object(spec);
 
@@ -52,32 +52,33 @@ export function where(spec) {
     test = spec;
   }
 
-  return build({ doc, test });
+  return factory({ doc, test });
 }
 
 where.doc = {
-  build, parse, correct, scenario, convert, evaluate, map
+  factory, parse, analyze, scenario, convert, map
 }
 
 // scenarios
-function build({ doc, test }) {
-  var { labels, rows } = parse({ doc });
+function factory({ doc, test }) {
+  var { keys, rows } = parse({ doc });
 
-  // corrections
+  // 1. analyze spec parts for corrections to be made.
+  // Return them if any are found.
   // - test not a function
   // - no data rows
-  // - no labels
-  // - duplicate labels
-  // - labels don't start wih a-z, $, _, and/or contain whitespace
-  var corrections = correct({ labels, rows, test });
+  // - no keys
+  // - duplicate keys
+  // - keys don't start wih a-z, $, _, and/or contain whitespace
+  var corrections = analyze({ keys, rows, test });
 
   if (corrections.length) {
     return corrections
   }
 
   // return scenarios
-  return rows.map((tokens, i) => {
-    return scenario({ labels, tokens, row: i + 1 })
+  return rows.map((tokens, index) => {
+    return scenario({ keys, tokens, index, test })
   })
 }
 
@@ -119,15 +120,15 @@ function parse({ doc }) {
   });
 
   return {
-    // Assign an empty array if data has no labels.
-    labels: rows[0] || [],
+    // Assign an empty array if data has no keys.
+    keys: rows[0] || [],
     // Create an empty array if data has no rows.
     rows: rows.slice(1)
   }
 }
 
 // return list of outline corrections to be made
-function correct({ labels, rows, test }) {
+function analyze({ keys, rows, test }) {
   var corrections = [];
   var errors = []
 
@@ -138,31 +139,31 @@ function correct({ labels, rows, test }) {
 
   // no data rows
   if (!rows.length) {
-    errors.push(`No data rows defined for [${labels.join(', ')}]`)
+    errors.push(`No data rows defined for [${keys.join(', ')}]`)
   }
 
-  // no labels
-  if (!labels.length) {
-    errors.push(`No labels defined for [${labels.join(', ')}]`)
+  // no keys
+  if (!keys.length) {
+    errors.push(`No keys defined for [${keys.join(', ')}]`)
   }
 
-  // duplicate labels
-  if (labels.length > new Set(labels).size) {
+  // duplicate keys
+  if (keys.length > new Set(keys).size) {
     var visited = {};
     var dupes = {};
 
-    labels.forEach(key => {
+    keys.forEach(key => {
       if (key in visited && !(key in dupes)) {
         dupes[key] = key
       }
       visited[key] = key
     })
 
-    errors.push(`Duplicate labels: [${Object.keys(dupes).join(', ')}]`)
+    errors.push(`Duplicate keys: [${Object.keys(dupes).join(', ')}]`)
   }
 
-  // labels don't start wih A-z, $, _, and/or contains whitespace.
-  labels.forEach(label => {
+  // keys don't start wih A-z, $, _, and/or contains whitespace.
+  keys.forEach(label => {
     if (!/^[A-z\$\_]([^\s])*$/.test(label)) {
       errors.push(`Label "${label}" expected to start with A-z, $, or _ (X, x, $x, _x)`)
     }
@@ -171,7 +172,7 @@ function correct({ labels, rows, test }) {
   if (errors.length) {
     var error = errors.join('\n');
     var test = function () { throw new Error(error) }
-    var correction = { labels, rows, error, test }
+    var correction = { keys, rows, error, test }
 
     corrections.push(correction)
   }
@@ -179,15 +180,16 @@ function correct({ labels, rows, test }) {
   return corrections;
 }
 
-// returns a test-scenario { params, test } or an error-scenario { values, labels, error, test }
-function scenario({ labels, tokens, row }) {
+// returns a test-scenario { params, test }
+// or an error-scenario { values, keys, error, test }
+function scenario({ keys, tokens, index, test }) {
   var errors = []
 
-  // unbalanced labels.length != tokens.length
-  if (labels.length != tokens.length) {
+  // unbalanced keys.length != tokens.length
+  if (keys.length != tokens.length) {
     var message = [
-      `Row ${row}`,
-      `expected ${labels.length} tokens`,
+      `Row ${index + 1}`,
+      `expected ${keys.length} tokens`,
       `but found ${tokens.length}.`
     ].join(', ');
 
@@ -199,18 +201,18 @@ function scenario({ labels, tokens, row }) {
     var test = function () { throw new Error(error) }
     var values = tokens;
 
-    return { values, labels, error, test };
+    return { values, keys, error, test };
   }
 
   var values = convert({ tokens })
 
   return {
-    params: map({ params, values }),
+    params: map({ keys, values }),
     test: function () { return test.apply(null, values) }
   };
 }
 
-// return real values:
+// return convert tokens to real values:
 // false, true, null, undefined, numbers, NaN, Math and Number constants,
 // object and array literals.
 // functions not supported
@@ -256,7 +258,7 @@ function convert({ tokens }) {
 
       if (match) {
         try {
-          value = evaluate({ token })
+          value = Function("return (" + token + ");").call()
         }
         catch (error) {
           value = error
@@ -273,18 +275,14 @@ function convert({ tokens }) {
   })
 }
 
-// return real value, convert tokens helper
-function evaluate({ token }) {
-  return Function("return (" + token + ");").call()
-}
+// returns map of key-value entries { a: 1, b: 2 }
+function map({ keys, values }) {
+  var entries = {}
 
-// return enum { a: 1, b: 2 }
-function map({ labels, values }) {
-  var params = {}
-
-  labels.forEach((key, i) => {
-    params[key] = values[i]
+  keys.forEach((label, i) => {
+    entries[label] = values[i]
   })
 
-  return params
+  return entries
 }
+

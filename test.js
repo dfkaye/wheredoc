@@ -27,49 +27,77 @@ let { assert, expect } = chai;
  *  - use top-level await import(module_filepath)
  *  - use destructuring assignment in one step, not after.
  */
-let { spec, where, parse, build, convert } = await import('../where.js')
+// let { where } = await import('./where.js')
 
 // or just use import { ... }
-// import { where, parse, build, convert } from '../../where.js';
+import { where } from './draft.js';
 
 describe("wheredoc", () => {
-  describe("scenarios", () => {
-    var { scenarios, errors } = spec((a, b, c) => {
-      expect(c).to.equal(a + b);
+
+  describe("where(fn)", () => {
+    var spec = (a, b, c) => {
+      expect(c).to.equal(a + b)
 
       where: `
+       a |  b |  c
+       0 |  0 |  0
+       1 |  2 |  3
+      -1 | -2 | -3
+      `;
+    }
+
+    var scenarios = where(spec)
+
+    scenarios.forEach(scenario => {
+      var { params: p, test } = scenario;
+
+      it(`with ${p.a} and ${p.b}, expect ${p.c}`, test)
+    })
+  })
+
+  describe("factory", () => {
+    var spec = {
+      test: (a, b, c) => {
+        expect(c).to.equal(a + b)
+      },
+      doc: `
       a | b | c
       0 | 0 | 0
       1 | 2 | 3
       -1 | -2 | -3
-      `;
-    })
+      `
+    }
+
+    var scenarios = where.doc.factory(spec)
 
     scenarios.forEach(scenario => {
-      var { params: p, apply } = scenario;
+      var { params: p, test } = scenario;
 
-      it(`with ${p.a} and ${p.b}, expect ${p.c}`, apply)
+      it(`with ${p.a} and ${p.b}, expect ${p.c}`, test)
     })
   })
 
   describe("errors", () => {
-    var { scenarios, errors } = spec((a, b, c) => {
-      expect(c).to.equal(a + b);
-
-      where: `
+    var spec = {
+      test: (a, b, c) => {
+        expect(c).to.equal(a + b)
+      },
+      doc: `
       a | b | c
      // 0 | 0 | 1
      // 1 | -2 | 3
      // 1 | -2 | -3
-      `;
-    })
+      `
+    }
+
+    var scenarios = where.doc.factory(spec)
 
     scenarios.forEach(scenario => {
-      var { params: p, apply } = scenario;
+      var { params: p, test } = scenario;
 
-      expect(apply).to.throw();
+      expect(test).to.throw();
 
-      // it(`with ${p.a} and ${p.b}, expect ${p.c}`, apply)
+      // it(`with ${p.a} and ${p.b}, expect ${p.c}`, test)
     })
   })
 })
