@@ -34,71 +34,103 @@ import { where } from './draft.js';
 
 describe("wheredoc", () => {
 
-  describe("where(fn)", () => {
-    var spec = (a, b, c) => {
-      expect(c).to.equal(a + b)
+  describe("where()", () => {
+    describe("accepts a spec function", () => {
+      var spec = (a, b, c) => {
+        expect(c).to.equal(a + b)
 
-      where: `
+        where: `
        a |  b |  c
        0 |  0 |  0
        1 |  2 |  3
       -1 | -2 | -3
       `;
-    }
+      }
 
-    var scenarios = where(spec)
+      var scenarios = where(spec)
 
-    scenarios.forEach(scenario => {
-      var { params: p, test } = scenario;
+      scenarios.forEach(scenario => {
+        var { params: p, test } = scenario;
 
-      it(`with ${p.a} and ${p.b}, expect ${p.c}`, test)
+        it(`with ${p.a} and ${p.b}, expect ${p.c}`, test)
+      })
     })
+
+    describe("accepts doc and test properties on spec", () => {
+      var spec = {
+        test: (a, b, c) => {
+          expect(c).to.equal(a + b)
+        },
+        doc: `
+        a | b | c
+        0 | 0 | 0
+        1 | 2 | 3
+        -1 | -2 | -3
+        `
+      }
+
+      var scenarios = where(spec)
+
+      scenarios.forEach(scenario => {
+        var { params: p, test } = scenario;
+
+        it(`with ${p.a} and ${p.b}, expect ${p.c}`, test)
+      })
+    })
+
+    // handled by factory->analyze
+    // fails on doc missing
+    // fails on test missing
+    // fails on empty spec (no where table)
   })
 
-  describe("where.doc.factory", () => {
-    var spec = {
-      test: (a, b, c) => {
-        expect(c).to.equal(a + b)
-      },
-      doc: `
+  describe("where.doc.factory()", () => {
+    describe("requires doc and test params", () => {
+      var spec = {
+        test: (a, b, c) => {
+          expect(c).to.equal(a + b)
+        },
+        doc: `
       a | b | c
       0 | 0 | 0
       1 | 2 | 3
       -1 | -2 | -3
       `
-    }
+      }
 
-    var scenarios = where.doc.factory(spec)
+      var scenarios = where.doc.factory(spec)
 
-    scenarios.forEach(scenario => {
-      var { params: p, test } = scenario;
+      scenarios.forEach(scenario => {
+        var { params: p, test } = scenario;
 
-      it(`with ${p.a} and ${p.b}, expect ${p.c}`, test)
+        it(`with ${p.a} and ${p.b}, expect ${p.c}`, test)
+      })
     })
   })
 
+  describe("where.doc.parse", () => {
+    // accepts but removes outer fence posts
+
+    /* {
+      // Assign an empty array if data has no keys.
+      keys: rows[0] || [],
+      // Create an empty array if data has no rows.
+      rows: rows.slice(1)
+    } */
+  })
+
   describe("where.doc.analyze", () => {
-    var spec = {
-      test: (a, b, c) => {
-        expect(c).to.equal(a + b)
-      },
-      doc: `
-      a | b | c
-     // 0 | 0 | 1
-     // 1 | -2 | 3
-     // 1 | -2 | -3
-      `
-    }
+    // - test not a function
+    // - no data rows
+    // - no keys
+    // - duplicate keys
+    // - keys don't start wih a-z, $, _, and/or contain whitespace
+  })
 
-    var scenarios = where.doc.factory(spec)
+  describe("where.doc.scenario", () => {
+    // unbalanced keys.length != tokens.length
 
-    scenarios.forEach(scenario => {
-      var { params: p, test } = scenario;
-
-      expect(test).to.throw();
-
-      // it(`with ${p.a} and ${p.b}, expect ${p.c}`, test)
-    })
+    // executable scenario
   })
 
   describe('where.doc.convert() tokens to values', () => {

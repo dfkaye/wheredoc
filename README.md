@@ -1,20 +1,21 @@
 # wheredoc
 Started: 2 Oct 2020
-*3 Oct 2020: in progress*
-*irrigation, faucet, buddleia, downspout drainage, fence post*
-*16 Oct 2020: getting back to it - round trip done; more todos coming*
-*19 Oct 2020: resuming wheredoc group tests, empty doc, empty params, better error messages*
-*dirt redistribution (berms)*
-*19-20 Oct: docstring variant started*
-*26-28 Oct 2020:
-- tests not complete as they should be; design works seems hard to follow (and so do the tests);
-- docstring variant supports both where(spec) or where({ doc, test });
-- better regex for row extractions
-- doctring in spec function demarcated by a `where:` label, following by multiline string `...`;
-- support testing of the transformation process by exporting `where.doc.<method>` namespace;
-- refactoring the new design in draft.js;
-- supports external fence posts ( | a | b | c | OR a | b | c);
-*29-30 Oct 2020: draft about ready for re-testing; changed outline to correct, added corrections;*
+- *3 Oct 2020: in progress*
+- *irrigation, faucet, buddleia, downspout drainage, fence post*
+- *16 Oct 2020: getting back to it - round trip done; more todos coming*
+- *19 Oct 2020: resuming wheredoc group tests, empty doc, empty params, better error messages*
+- *dirt redistribution (berms)*
+- *19-20 Oct: docstring variant started*
+- *26-28 Oct 2020:
+  - tests not complete as they should be; design works seems hard to follow (and so do the tests);
+  - docstring variant supports both where(spec) or where({ doc, test });
+  - better regex for row extractions
+  - doctring in spec function demarcated by a `where:` label, following by multiline string `...`;
+  - support testing of the transformation process by exporting `where.doc.<method>` namespace;
+  - refactoring the new design in draft.js;
+  - supports external fence posts ( | a | b | c | OR a | b | c);
+- *29-30 Oct 2020: draft about ready for re-testing; changed outline to correct, added corrections;*
+- *Nov 1: start putting draft,js under new test.js*
 
 Use docstring-like data tables in JavaScript tests, similar to Cucumber `scenario outline` examples or Spock `where` blocks.
 
