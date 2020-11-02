@@ -108,7 +108,7 @@ describe("wheredoc", () => {
     })
   })
 
-  describe.only("where.doc.parse", () => {
+  describe("where.doc.parse", () => {
     it("returns keys and rows from spec doc", () => {
       var doc = `
       a | b | c
