@@ -35,53 +35,191 @@ import { where } from './draft.js';
 describe("wheredoc", () => {
 
   describe("where()", () => {
-    describe("accepts a spec function", () => {
-      var spec = (a, b, c) => {
-        expect(c).to.equal(a + b)
-
-        where: `
-       a |  b |  c
-       0 |  0 |  0
-       1 |  2 |  3
-      -1 | -2 | -3
-      `;
-      }
-
-      var scenarios = where(spec)
-
-      scenarios.forEach(scenario => {
-        var { params: p, test } = scenario;
-
-        it(`with ${p.a} and ${p.b}, expect ${p.c}`, test)
-      })
-    })
-
-    describe("accepts doc and test properties on spec", () => {
-      var spec = {
-        test: (a, b, c) => {
+    describe("returns array of scenarios with params and test properties", () => {
+      describe("given a spec function with where: table", () => {
+        var spec = (a, b, c) => {
           expect(c).to.equal(a + b)
-        },
-        doc: `
-        a | b | c
-        0 | 0 | 0
-        1 | 2 | 3
-        -1 | -2 | -3
+
+          where: `
+            a |  b |  c
+            0 |  0 |  0
+            1 |  2 |  3
+            -1 | -2 | -3
+          `;
+        }
+
+        var scenarios = where(spec)
+
+        scenarios.forEach(scenario => {
+          var { params: p, test } = scenario;
+
+          it(`with ${p.a} and ${p.b}, expect ${p.c}`, test)
+        })
+
+        describe("where: block table contains outer fence posts", () => {
+          var spec = (a, b, c) => {
+            expect(c).to.equal(a + b)
+
+            where: `
+            |  a |  b |  c |
+            |  0 |  0 |  0 |
+            |  1 |  2 |  3 |
+            |  -1 | -2 | -3 |
+            `;
+          }
+
+          var scenarios = where(spec)
+
+          scenarios.forEach(scenario => {
+            var { params: p, test } = scenario;
+
+            it(`with ${p.a} and ${p.b}, expect ${p.c}`, test)
+          })
+        })
+      })
+
+      describe("given a spec object with doc and test properties", () => {
+        var spec = {
+          test: (a, b, c) => {
+            expect(c).to.equal(a + b)
+          },
+          doc: `
+          a | b | c
+          0 | 0 | 0
+          1 | 2 | 3
+          -1 | -2 | -3
         `
-      }
+        }
 
-      var scenarios = where(spec)
+        var scenarios = where(spec)
 
-      scenarios.forEach(scenario => {
-        var { params: p, test } = scenario;
+        scenarios.forEach(scenario => {
+          var { params: p, test } = scenario;
 
-        it(`with ${p.a} and ${p.b}, expect ${p.c}`, test)
+          it(`with ${p.a} and ${p.b}, expect ${p.c}`, test)
+        })
+
+        describe("doc table contains outer fence posts", () => {
+          var spec = (a, b, c) => {
+            expect(c).to.equal(a + b)
+
+            where: `
+            |  a |  b |  c |
+            |  0 |  0 |  0 |
+            |  1 |  2 |  3 |
+            |  -1 | -2 | -3 |
+            `;
+          }
+
+          var scenarios = where(spec)
+
+          scenarios.forEach(scenario => {
+            var { params: p, test } = scenario;
+
+            it(`with ${p.a} and ${p.b}, expect ${p.c}`, test)
+          })
+        })
+      })
+
+      describe("given a spec function with doc and test properties", () => {
+        it("processes the spec function, ignores doc and test properties", () => {
+          var status = "unset"
+
+          var spec = function (a, b, c) {
+            expect(c).to.equal(a + b)
+
+            status = "set by spec"
+
+            where: `
+              a | b | c
+              1 | 2 | 3
+            `
+          }
+
+          spec.test = function (a, b, c) {
+            // should ignore test function
+            status = "set by test function"
+          };
+
+          spec.doc = `
+            // should ignore doc table
+            a | b | c
+            4 | 5 | 6
+          `;
+
+          var scenarios = where(spec)
+
+          var { params, test } = scenarios[0]
+
+          expect(params).to.deep.equal({ a: 1, b: 2, c: 3 })
+
+          test()
+
+          expect(status).to.equal("set by spec")
+        })
       })
     })
 
     // handled by factory->analyze
-    // fails on doc missing
-    // fails on test missing
-    // fails on empty spec (no where table)
+    describe("on outline problems", () => {
+      it("returns error on doc missing", () => {
+        var scenarios = where({
+          test: () => { }
+        })
+
+        var { keys, rows, error, test } = scenarios[0]
+
+        expect(keys).to.deep.equal([])
+        expect(rows).to.deep.equal([])
+        expect(error).to.equal("No data rows defined for keys, [].")
+        expect(test).to.throw(error)
+      });
+
+      it("returns error on test missing", () => {
+        var scenarios = where({
+          doc: `
+          
+          `
+        })
+
+        var { keys, rows, error, test } = scenarios[0]
+
+        expect(keys).to.deep.equal([])
+        expect(rows).to.deep.equal([])
+        expect(error).to.equal("Expected test to be a Function but was Undefined.")
+        expect(test).to.throw(error)
+      });
+
+      it("returns error on empty spec function (no where table)", () => {
+        var status = "initial";
+        var scenarios = where(function () {
+          status = "overwritten"
+        });
+
+        var { keys, rows, error, test } = scenarios[0]
+
+        expect(keys).to.deep.equal([])
+        expect(rows).to.deep.equal([])
+        expect(error).to.equal("No data rows defined for keys, [].")
+        expect(test).to.throw(error)
+        expect(status).to.equal("initial")
+      });
+    })
+
+    describe("where: block formats", () => {
+      // backticks
+      // comments
+      // multiline string
+
+      //  where: ` ... `;
+      //  where: /* ... */; <-- requires trailing semi-colon if no other statements follow>
+      //  where: " ... \n\ ... ";
+      //  where: () => { .... };
+      it("accepts template literal")
+      it("accepts multiline comments")
+      it("accepts multiline string")
+      it("accepts a nested function")
+    })
   })
 
   describe("where.doc.factory", () => {
@@ -360,16 +498,16 @@ describe("wheredoc", () => {
       })
 
       it("reports invalid key names", () => {
-        // - keys don't start wih a-z, $, _, and/or contain whitespace
+        // - keys don't start with A-z, $, _, and/or contain whitespace
 
         var { test } = ok;
-        var keys = ["9", "#", "%", "\"quoted\"", /*empty string*/ "", "ok", "$ok", "_ok"]
+        var keys = ["9", "#", "%", "\"quoted\"", /*empty string*/ "", "a b", "ok", "$ok", "_ok"]
         var rows = [
-          ["won't", "process", "this", "row", "either"]
+          ["will", "not", "process", "this", "row", "either"]
         ];
 
         var corrections = where.doc.analyze({ keys, rows, test })
-        expect(corrections.length).to.equal(5)
+        expect(corrections.length).to.equal(6)
 
         corrections.forEach((correction, index) => {
           var { error } = correction;

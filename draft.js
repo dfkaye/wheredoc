@@ -61,6 +61,10 @@ where.doc = {
 
 // scenarios
 function factory({ doc, test }) {
+  if (doc !== Object(doc).toString()) {
+    doc = ""
+  }
+
   var { keys, rows } = parse({ doc });
 
   // 1. analyze spec parts for corrections to be made.
@@ -69,7 +73,7 @@ function factory({ doc, test }) {
   // - no data rows
   // - no keys
   // - duplicate keys
-  // - keys don't start wih a-z, $, _, and/or contain whitespace
+  // - keys don't start with a-z, $, _, and/or contain whitespace
   var corrections = analyze({ keys, rows, test });
 
   if (corrections.length) {
