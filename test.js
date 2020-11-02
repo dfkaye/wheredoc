@@ -108,15 +108,97 @@ describe("wheredoc", () => {
     })
   })
 
-  describe("where.doc.parse", () => {
-    // accepts but removes outer fence posts
+  describe.only("where.doc.parse", () => {
+    it("returns keys and rows from spec doc", () => {
+      var doc = `
+      a | b | c
+      2 | 3 | 5
+      `;
 
-    /* {
-      // Assign an empty array if data has no keys.
-      keys: rows[0] || [],
-      // Create an empty array if data has no rows.
-      rows: rows.slice(1)
-    } */
+      var { keys, rows } = where.doc.parse({ doc })
+
+      expect(keys.length).to.equal(3)
+      expect(rows.length).to.equal(1)
+
+      var tokens = rows[0]
+      expect(tokens).to.deep.equal(["2", "3", "5"])
+    })
+
+    it("removes outer fence posts (table borders)", () => {
+      var doc = `
+      | a | b | c |
+      | 2 | 3 | 5 |
+      `;
+
+      var { keys, rows } = where.doc.parse({ doc })
+
+      expect(keys.length).to.equal(3)
+      expect(rows.length).to.equal(1)
+
+      var tokens = rows[0]
+      expect(tokens).to.deep.equal(["2", "3", "5"])
+    })
+
+    it("removes line comments, ", () => {
+      var doc = `
+      a | b | c
+
+      1 | 2 | 3
+   // 4 | 5 | 6 (shouldn't see this line)
+      7 | 8 | 9
+
+      `;
+
+      var { keys, rows } = where.doc.parse({ doc })
+
+      expect(keys).to.deep.equal(["a", "b", "c"])
+      expect(rows).to.deep.equal([
+        ["1", "2", "3"],
+        ["7", "8", "9"]
+      ])
+    })
+
+    it("returns arrays of keys and tokens as they are encountered, ", () => {
+      var doc = `
+      a |   | c
+
+      1 |   | 3
+      4 | 5 | 
+        | 8 | 9
+
+      `;
+
+      var { keys, rows } = where.doc.parse({ doc })
+
+      expect(keys).to.deep.equal(["a", "", "c"])
+      expect(rows).to.deep.equal([
+        ["1", "", "3"],
+        ["4", "5", ""],
+        ["", "8", "9"]
+      ])
+    })
+
+    it("returns empty rows array if spec doc has no rows.", () => {
+      var doc = `
+      should | see | these
+      `;
+
+      var { keys, rows } = where.doc.parse({ doc })
+
+      expect(keys).to.deep.equal(["should", "see", "these"])
+      expect(rows).to.deep.equal([])
+    })
+
+    it("returns empty keys and rows arrays if spec doc has neither keys nor rows.", () => {
+      var doc = `
+    
+      `;
+
+      var { keys, rows } = where.doc.parse({ doc })
+
+      expect(keys).to.deep.equal([])
+      expect(rows).to.deep.equal([])
+    })
   })
 
   describe("where.doc.analyze", () => {
