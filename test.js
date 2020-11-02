@@ -84,18 +84,18 @@ describe("wheredoc", () => {
     // fails on empty spec (no where table)
   })
 
-  describe("where.doc.factory()", () => {
-    describe("requires doc and test params", () => {
+  describe("where.doc.factory", () => {
+    describe("returns array of scenarios from valid specs", () => {
       var spec = {
         test: (a, b, c) => {
           expect(c).to.equal(a + b)
         },
         doc: `
-      a | b | c
-      0 | 0 | 0
-      1 | 2 | 3
-      -1 | -2 | -3
-      `
+          a | b | c
+          0 | 0 | 0
+          1 | 2 | 3
+          -1 | -2 | -3
+        `
       }
 
       var scenarios = where.doc.factory(spec)
@@ -104,6 +104,49 @@ describe("wheredoc", () => {
         var { params: p, test } = scenario;
 
         it(`with ${p.a} and ${p.b}, expect ${p.c}`, test)
+      })
+    })
+
+    describe("returns array of corrections on invalid specs", () => {
+      it("on outline errors", () => {
+        var spec = {
+          test: "should be a function",
+          doc: `
+              a | b | c
+              0 | 0 | 0
+              1 | 2 | 3
+            `
+        };
+
+        var corrections = where.doc.factory(spec)
+
+        expect(corrections.length).to.equal(1)
+
+        var { error } = corrections[0]
+
+        expect(error).to.equal("Expected test to be a Function but was String.")
+      })
+
+      it("on row data errors", () => {
+        var spec = {
+          test: () => { },
+          doc: `
+            a | b | c
+            0 | 0
+            1
+            'a' | 'b' | 'c' // expect | a b 
+          `
+        };
+
+        var scenarios = where.doc.factory(spec)
+
+        expect(scenarios.length).to.equal(3)
+        expect(scenarios[0].error).to.equal("Row 1, expected 3 tokens, but found 2.")
+        expect(scenarios[1].error).to.equal("Row 2, expected 3 tokens, but found 1.")
+
+        // last row is valid so params are returned instead of error
+        expect(scenarios[2].error).to.be.undefined
+        expect(scenarios[2].params).to.deep.equal({ a: "'a'", b: "'b'", c: "'c'" });
       })
     })
   })
@@ -121,6 +164,7 @@ describe("wheredoc", () => {
       expect(rows.length).to.equal(1)
 
       var tokens = rows[0]
+
       expect(tokens).to.deep.equal(["2", "3", "5"])
     })
 
@@ -136,6 +180,7 @@ describe("wheredoc", () => {
       expect(rows.length).to.equal(1)
 
       var tokens = rows[0]
+
       expect(tokens).to.deep.equal(["2", "3", "5"])
     })
 
