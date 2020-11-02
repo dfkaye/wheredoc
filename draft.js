@@ -129,22 +129,22 @@ function parse({ doc }) {
 
 // return list of outline corrections to be made
 function analyze({ keys, rows, test }) {
-  var corrections = [];
   var errors = []
 
   // test is not a function
   if (typeof test != "function") {
-    errors.push(`"test" expected to be a function but was "${typeof test}"`)
+    var type = {}.toString.call(test).slice(8, -1)
+    errors.push(`Expected test to be a Function but was ${type}.`)
   }
 
   // no data rows
   if (!rows.length) {
-    errors.push(`No data rows defined for [${keys.join(', ')}]`)
+    errors.push(`No data rows defined for keys, [${keys.join(', ')}].`)
   }
 
   // no keys
   if (!keys.length) {
-    errors.push(`No keys defined for [${keys.join(', ')}]`)
+    errors.push(`No keys defined.`)
   }
 
   // duplicate keys
@@ -159,25 +159,21 @@ function analyze({ keys, rows, test }) {
       visited[key] = key
     })
 
-    errors.push(`Duplicate keys: [${Object.keys(dupes).join(', ')}]`)
+    errors.push(`Duplicate keys: [${Object.keys(dupes).join(', ')}].`)
   }
 
   // keys don't start wih A-z, $, _, and/or contains whitespace.
   keys.forEach(label => {
     if (!/^[A-z\$\_]([^\s])*$/.test(label)) {
-      errors.push(`Label "${label}" expected to start with A-z, $, or _ (X, x, $x, _x)`)
+      errors.push(`Invalid key, ${label}, expected to start with A-z, $, or _ (Key, key, $key, _Key).`)
     }
   })
 
-  if (errors.length) {
-    var error = errors.join('\n');
+  return errors.map(error => {
     var test = function () { throw new Error(error) }
-    var correction = { keys, rows, error, test }
 
-    corrections.push(correction)
-  }
-
-  return corrections;
+    return { keys, rows, error, test }
+  })
 }
 
 // returns a test-scenario { params, test }

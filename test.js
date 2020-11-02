@@ -120,11 +120,166 @@ describe("wheredoc", () => {
   })
 
   describe("where.doc.analyze", () => {
-    // - test not a function
-    // - no data rows
-    // - no keys
-    // - duplicate keys
-    // - keys don't start wih a-z, $, _, and/or contain whitespace
+    describe("on spec outline errors", () => {
+      var ok = {
+        keys: ["a", "b", "c"],
+        rows: [
+          [0, 1, 1],
+          [2, 3, 5],
+          [123, 456, 579]
+        ],
+        test: function () { }
+      }
+
+      it("returns an array of corrections to be made", () => {
+        var keys = [] // no keys
+        var rows = "" // no rows
+        var test = "" // test not a function
+
+        var corrections = where.doc.analyze({ keys, rows, test })
+
+        expect(corrections.length).to.equal(3)
+      })
+
+      it("corrections include keys, rows, error, and test fields", () => {
+        var keys = [] // no keys
+        var rows = "" // no rows
+        var test = "" // test not a function
+
+        var corrections = where.doc.analyze({ keys, rows, test })
+
+        corrections.forEach(correction => {
+          expect(correction.keys).to.deep.equal(keys)
+          expect(correction.rows).to.deep.equal(rows)
+          expect(correction.error).to.be.a("string")
+          expect(correction.test).to.be.a("function")
+        })
+      })
+
+      it("correction.test throws the correction.error message", () => {
+        var keys = [] // no keys
+        var rows = "" // no rows
+        var test = "" // test not a function
+
+        var corrections = where.doc.analyze({ keys, rows, test })
+
+        corrections.forEach(correction => {
+          var { error, test } = correction;
+
+          expect(test).to.throw(error)
+        })
+      })
+
+      it("reports invalid test function", () => {
+        // - test not a function
+
+        var { keys, rows } = ok;
+        var test = null;
+
+        var corrections = where.doc.analyze({ keys, rows, test })
+        expect(corrections.length).to.equal(1)
+
+        var expected = "Expected test to be a Function but was Null."
+        var actual = corrections[0].error
+        expect(actual).to.equal(expected)
+      })
+
+      it("reports empty data rows", () => {
+        // - no data rows
+
+        var { keys, test } = ok;
+        var rows = "";
+
+        var corrections = where.doc.analyze({ keys, rows, test })
+        expect(corrections.length).to.equal(1)
+
+        var expected = "No data rows defined for keys, [a, b, c]."
+        var actual = corrections[0].error
+        expect(actual).to.equal(expected)
+      })
+
+      it("reports no keys defined", () => {
+        // - no keys
+
+        var { test } = ok;
+        var keys = []
+        var rows = [
+          ["won't", "process", "this", "row"]
+        ];
+
+        var corrections = where.doc.analyze({ keys, rows, test })
+        expect(corrections.length).to.equal(1)
+
+        var expected = "No keys defined."
+        var actual = corrections[0].error
+        expect(actual).to.equal(expected)
+      })
+
+      it("reports duplicate keys found", () => {
+        // - duplicate keys
+
+        var { test } = ok;
+        var keys = ["a", "a", "b", "b", "ok"]
+        var rows = [
+          ["won't", "process", "this", "row", "either"]
+        ];
+
+        var corrections = where.doc.analyze({ keys, rows, test })
+        expect(corrections.length).to.equal(1)
+
+        var expected = "Duplicate keys: [a, b]."
+        var actual = corrections[0].error
+        expect(actual).to.equal(expected)
+      })
+
+      it("reports invalid key names", () => {
+        // - keys don't start wih a-z, $, _, and/or contain whitespace
+
+        var { test } = ok;
+        var keys = ["9", "#", "%", "\"quoted\"", /*empty string*/ "", "ok", "$ok", "_ok"]
+        var rows = [
+          ["won't", "process", "this", "row", "either"]
+        ];
+
+        var corrections = where.doc.analyze({ keys, rows, test })
+        expect(corrections.length).to.equal(5)
+
+        corrections.forEach((correction, index) => {
+          var { error } = correction;
+          var message = `Invalid key, ${keys[index]}, expected to start with A-z, $, or _ (Key, key, $key, _Key).`
+
+          expect(error).to.equal(message)
+        })
+      })
+    })
+
+    describe("on valid spec outline", () => {
+      it("returns empty corrections array", () => {
+        var keys = ["a1", "b1", "c1"]
+        var rows = [
+          [0, 1, 1],
+          [2, 3, 5],
+          [123, 456, 579]
+        ]
+        var test = () => { }
+
+        var corrections = where.doc.analyze({ keys, rows, test })
+
+        expect(corrections.length).to.equal(0)
+      })
+
+      it("allows undefined, null, NaN as keys", () => {
+        var keys = ["undefined", "null", "NaN"]
+        var rows = [
+          [1, 2, 3, 4]
+        ]
+        var test = () => { }
+
+        var corrections = where.doc.analyze({ keys, rows, test })
+
+        expect(corrections.length).to.equal(0)
+      })
+    })
   })
 
   describe("where.doc.scenario", () => {
