@@ -181,7 +181,7 @@ function analyze({ keys, rows, test }) {
 }
 
 // returns a test-scenario { params, test }
-// or an error-scenario { values, keys, error, test }
+// or an error-scenario { keys, tokens, error, test }
 function scenario({ keys, tokens, index, test }) {
   var errors = []
 
@@ -199,9 +199,8 @@ function scenario({ keys, tokens, index, test }) {
   if (errors.length) {
     var error = errors.join("\n")
     var test = function () { throw new Error(error) }
-    var values = tokens;
 
-    return { values, keys, error, test };
+    return { keys, tokens, error, test };
   }
 
   var values = convert({ tokens })

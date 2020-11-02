@@ -128,9 +128,69 @@ describe("wheredoc", () => {
   })
 
   describe("where.doc.scenario", () => {
-    // unbalanced keys.length != tokens.length
+    describe("on scenario errors", () => {
+      // unbalanced keys.length != tokens.length
+      var keys = ["a", "b", "c"]
+      var tokens = [0, 1]
+      var index = 0;
+      var test = function (a, b, c) {
+        throw new Error("should not see this in the console.")
+      }
+      var row = { keys, tokens, index, test }
 
-    // executable scenario
+      var { keys, tokens, error, test } = where.doc.scenario(row);
+
+      it("returns a scenario with original keys and tokens", () => {
+        expect(keys).to.deep.equal(keys)
+        expect(tokens).to.deep.equal(tokens)
+      })
+
+      it("includes scenario.error message", () => {
+        expect(error).to.equal("Row 1, expected 3 tokens, but found 2.")
+      })
+
+      it("includes scenario.test() method that throws the scenario.error message", () => {
+        expect(test).to.throw(error);
+      })
+    })
+
+    describe("on valid scenarios", () => {
+      // executable scenario
+      var keys = ["a", "b", "c"]
+      var tokens = ["1.5", "2.5", "4.00000"]
+      var index = 42;
+      var test = function (a, b, c) {
+        expect(c).to.equal(a + b)
+
+        // return a value to verify test() call executes.
+        return "Success"
+      }
+      var row = { keys, tokens, index, test }
+
+      var scenario = where.doc.scenario(row);
+
+      it("return scenario with params and test fields", () => {
+        var { params, test } = scenario;
+
+        expect(params).to.be.an("object")
+        expect(test).to.be.a("function")
+      })
+
+      it("returns scenario with params map", () => {
+        var { params: p } = scenario;
+
+        expect(p.a).to.equal(1.5)
+        expect(p.b).to.equal(2.5)
+        expect(p.c).to.equal(4)
+      })
+
+      it("returns scenario with test() method", () => {
+        var { test: t } = scenario;
+        var actual = t();
+
+        expect(actual).to.equal("Success")
+      })
+    })
   })
 
   describe('where.doc.convert() tokens to values', () => {
