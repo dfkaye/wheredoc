@@ -160,6 +160,83 @@ describe("wheredoc", () => {
       })
     })
 
+    describe("where: block formats", () => {
+      // backticks
+      // comments
+      // multiline string
+      // nested function with block in comments
+
+      //  where: ` ... `;
+      //  where: /* ... */; <-- requires trailing semi-colon if no other statements follow>
+      //  where: " ... \n\ ... ";
+      //  where: () => { .... };
+      it("accepts template literal", () => {
+        var spec = function () {
+          where: `
+          a | b | c
+          2 | 5 | 7
+          `
+        }
+
+        var scenarios = where(spec)
+        var { params, test } = scenarios[0];
+
+        expect(params).to.deep.equal({ a: 2, b: 5, c: 7 })
+        expect(test).to.be.a("function")
+      })
+
+      it("accepts multiline comment", () => {
+        var spec = function () {
+          where: /*
+          a | b | c
+          6 | 9 | 15
+          */
+          ; // Note: trailing semi-colon required if no further in spec.
+        }
+
+        var scenarios = where(spec)
+        var { params, test } = scenarios[0];
+
+        expect(params).to.deep.equal({ a: 6, b: 9, c: 15 })
+        expect(test).to.be.a("function")
+      })
+
+      it("accepts multiline string", () => {
+        var spec = function () {
+          where: "     \
+            a | b | c  \
+            3 | 8 | 11 \
+          ";
+
+          expect(c).to.equal(a + b)
+        }
+
+        var scenarios = where(spec)
+        var { params, test } = scenarios[0];
+
+        expect(params).to.deep.equal({ a: 3, b: 8, c: 11 })
+        expect(test).to.be.a("function")
+      })
+
+      it("accepts a nested function with block in comments", () => {
+        var spec = function () {
+          where: () => {/*
+              a | b | c
+              12 | -18 | -6
+            */ // Note: comment must start on first line of function.
+          }
+
+          expect(c).to.equal(a + b)
+        }
+
+        var scenarios = where(spec)
+        var { params, test } = scenarios[0];
+
+        expect(params).to.deep.equal({ a: 12, b: -18, c: -6 })
+        expect(test).to.be.a("function")
+      })
+    })
+
     // handled by factory->analyze
     describe("on outline problems", () => {
       it("returns error on doc missing", () => {
@@ -204,21 +281,6 @@ describe("wheredoc", () => {
         expect(test).to.throw(error)
         expect(status).to.equal("initial")
       });
-    })
-
-    describe("where: block formats", () => {
-      // backticks
-      // comments
-      // multiline string
-
-      //  where: ` ... `;
-      //  where: /* ... */; <-- requires trailing semi-colon if no other statements follow>
-      //  where: " ... \n\ ... ";
-      //  where: () => { .... };
-      it("accepts template literal")
-      it("accepts multiline comments")
-      it("accepts multiline string")
-      it("accepts a nested function")
     })
   })
 

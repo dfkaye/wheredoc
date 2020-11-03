@@ -39,7 +39,7 @@ export function where(spec) {
     // doc test function, it supports multiple formats for docstrings:
     //  where: ` ... `; <-- backticks for template literals
     //  where: /* ... */; <-- block comments
-    //  where: " ... \n\ ... "; <-- multiline strings using \n\ to separate lines
+    //  where: " ... \ ... "; <-- multiline strings using \ to separate lines
     //  where: () => { .... }; <-- an inner function containing a docstring.
     var reWheredoc = /(?:where[^\n]*[\n])(([^\|]*\|)+[^\n]*[\n])/;
     var match = spec.toString().match(reWheredoc);
@@ -92,7 +92,7 @@ function parse({ doc }) {
     // remove line comments.
     .replace(/\/\/[^\n]*/g, '')
     // split into lines.
-    .split('\n');
+    .split("\n");
 
   var rows = [];
 
@@ -100,9 +100,12 @@ function parse({ doc }) {
   // trim
   // return or split on |
   lines.forEach(text => {
-    var line = text.trim();
 
-    // remove external fence posts (| separators)
+    var line = text.trim()
+      // Supports \ terminated lines in old fashioned multiline strings.
+      .replace(/\\$/, "");
+
+    // Remove external fence posts (| separators).
     // before: | a | b | c |
     // after:  a | b | c
     if (/^\|(.)*\|$/.test(line)) {
