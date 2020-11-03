@@ -118,26 +118,25 @@ That approach de-couples the `where` clause from the mechanics of the test frame
 
 ## Examples
 
-```
-var doc = `
-a | b | c
-1 | 2 | 3
-4 | 5 | 9.0
-"h" | 'b' | "one, 'please'" // should fail
-`;
-```
-
 ### Mocha BDD UI
 
 ```
-describe('suite', (done) => {
-  var test = function (a, b, c) {
-	  expect(a + b).to.equal(c);
+describe('bdd', (done) => {
+  function spec() {
+    expect(c).to.equal(a + b)
+
+    where: `
+    a | b | c
+    1 | 2 | 3
+    "h" | 'b' | "one, 'please'" // should fail
+    `;
   }
 
-	where({ doc, test }).each({name, fn} => {
-		it(name, fn);
-	});
+  where(spec).forEach(scenario => {
+    var { params: p, test } = scenario
+
+    it(`with ${p.a} and ${p.b}, should get ${p.c}`, test)
+  });
 
   done();
 });
@@ -146,16 +145,22 @@ describe('suite', (done) => {
 ### Mocha TDD UI
 
 ```
-suite('suite', (done) => {
-  var assert = function (a, b, c) {
-	  expect(a + b).to.equal(c);
-  };
+suite('tdd', (done) => {
+  function spec() {
+    expect(c).to.equal(a + b)
 
-	where({ doc, test: assert }).each({name, fn} => {
-		test(name, () => {
-      fn();
-    });
-	});
+    where: `
+    a | b | c
+    1 | 2 | 3
+    "h" | 'b' | "one, 'please'" // should fail
+    `;
+  }
+
+  where(spec).forEach(scenario => {
+    var { params: p, test: t } = scenario
+
+    test(`with ${p.a} and ${p.b}, should get ${p.c}`, t)
+  });
 
   done();
 });
@@ -169,12 +174,20 @@ Qunit.module('suite');
 Qunit.test('where', (test) => {
   var done = test.async();
 
-  var assert = function (a, b, c) {
-	  test.equal(a + b, c);
-  };
+  function spec(a, b, c) {
+    test.equal(a + b, c);
 
-  where({ doc, test: assert }).each({name, fn} => {
-    fn();
+    where: `
+    a | b | c
+    1 | 2 | 3
+    "h" | 'b' | "one, 'please'" // should fail
+    `;
+  }
+
+  where(spec).forEach(scenario => {
+    var { params: p, test: t } = scenario
+
+    test(`with ${p.a} and ${p.b}, should get ${p.c}`, t)
   });
 
   done();
@@ -185,12 +198,20 @@ Qunit.test('where', (test) => {
 
 ```
 tape('suite', function(test) {
-  var assert = function(a, b, c) {
+  function spec(a, b, c) {
     test.equal(a + b, c);
-  };
 
-  where({ doc, test: assert }).each({name, fn} => {
-    fn();
+    where: `
+    a | b | c
+    1 | 2 | 3
+    "h" | 'b' | "one, 'please'" // should fail
+    `;
+  }
+
+  where(spec).forEach(scenario => {
+    var { params: p, test: t } = scenario
+
+    test(`with ${p.a} and ${p.b}, should get ${p.c}`, t)
   });
 
   test.end();
@@ -209,11 +230,6 @@ tape('suite', function(test) {
   - ['a'] | ['b'] | [ 'a', 'b' ]
 + done scenario.params as an enum, e.g., { a: 1, b: 2, c: 3 }
 + done: try the docstring function that contains a where: label (see below)
-
-+ support localized currency, number formats
-  - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat
-
-
 + **done** test suite for refactored wheredoc
 
 + create nodejs usage examples
@@ -224,6 +240,8 @@ tape('suite', function(test) {
   - mocha BDD
   - qunit
 + verifying DOM structure, element presence, attributes
++ support localized currency, number formats
+  - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat
 
 + (not covered: jest, jasmine, ava, riteway, cypress)
 
@@ -241,15 +259,15 @@ tape('suite', function(test) {
 ```js
 // docstring function
 function spec(a, b, c) {
+  expect(a + b).to.equal(c);
+  expect(c - a).to.equal(b);
+
   where: `
   a  |  b  |  c
   1  |  2  |  3
   4  |  3  |  7
   6  |  6  |  12
   `;
-
-  expect(a + b).to.equal(c);
-  expect(c - a).to.equal(b);
 }
 ```
 
