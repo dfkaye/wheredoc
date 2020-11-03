@@ -168,7 +168,7 @@ describe("wheredoc", () => {
       //  where: ` ... `;
       //  where: /* ... */; <-- requires trailing semi-colon if no other statements follow>
       //  where: " ... \n\ ... ";
-      //  where: () => { .... };
+      //  where: () => {/* .... */};
       it("accepts template literal", () => {
         var spec = function () {
           where: `
@@ -283,7 +283,7 @@ describe("wheredoc", () => {
     })
   })
 
-  describe("where.doc API methods", () => {
+  describe("where.doc API", () => {
     describe("where.doc.factory", () => {
       describe("returns array of scenarios from valid specs", () => {
         var spec = {

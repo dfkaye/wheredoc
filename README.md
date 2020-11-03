@@ -88,16 +88,16 @@ it('description', function () {
 });
 ```
 
-The `doc` field can also be formatted as a multi-line string, using backslash notation, but in that case, each line must end with a newline character, followed by the backslash (`\n\`).
+The `doc` field can also be formatted as a multi-line string, using backslash notation (`\`) at the end of each line.
 
 ```js
 it('description', function () {
   where({
     doc: "\
-      a  |  b  |  c		\n\
-      1  |  2  |  3		\n\
-      4  |  3  |  7		\n\
-      6  |  6  |  12	\n\
+      a  |  b  |  c		\
+      1  |  2  |  3		\
+      4  |  3  |  7		\
+      6  |  6  |  12	\
     ",
 
 		test: (a,b,c) => {
@@ -254,7 +254,10 @@ tape('suite', function(test) {
     - https://nodejs.org/api/esm.html#esm_interoperability_with_commonjs
     - https://exploringjs.com/impatient-js/ch_modules.html#import.meta.url-on-node.js
 
-## docstring function variant - in progress 21 october 2020
+## docstring function variant
+
+- started 21 October 2020
+- **done, 2 November 2020**
 
 ```js
 // docstring function
@@ -284,7 +287,7 @@ where(spec).forEach(scenario => {
 If there's a name conflict with `test`, however, you can de-conflict by using an alias when destructuring the scenario, for example:
 
 ```js
-where({ doc }).scenarios.forEach(scenario => {
+where(spec).scenarios.forEach(scenario => {
   var { params: p, test: t } = scenario
 
   test(`with ${p.a} and ${p.b}, should get ${p.c}`, t)
