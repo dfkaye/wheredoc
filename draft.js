@@ -61,10 +61,6 @@ where.doc = {
 
 // scenarios
 function factory({ doc, test }) {
-  if (doc !== Object(doc).toString()) {
-    doc = ""
-  }
-
   var { keys, rows } = parse({ doc });
 
   // 1. analyze spec parts for corrections to be made.
@@ -88,7 +84,12 @@ function factory({ doc, test }) {
 
 // parse doc as docstring or function containing docstring.
 function parse({ doc }) {
-  var lines = Object(doc).toString().trim()
+  // Ensure that doc is a string.
+  if (doc !== Object(doc).toString()) {
+    doc = ""
+  }
+
+  var lines = doc.trim()
     // remove line comments.
     .replace(/\/\/[^\n]*/g, '')
     // split into lines.
@@ -100,12 +101,11 @@ function parse({ doc }) {
   // trim
   // return or split on |
   lines.forEach(text => {
-
     var line = text.trim()
       // Supports \ terminated lines in old fashioned multiline strings.
       .replace(/\\$/, "");
 
-    // Remove external fence posts (| separators).
+    // Remove external table borders (| separators).
     // before: | a | b | c |
     // after:  a | b | c
     if (/^\|(.)*\|$/.test(line)) {
