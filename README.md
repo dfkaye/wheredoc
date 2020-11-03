@@ -1,32 +1,36 @@
 # wheredoc
-Started: 2 Oct 2020
-- *3 Oct 2020: in progress*
-- *irrigation, faucet, buddleia, downspout drainage, fence post*
-- *16 Oct 2020: getting back to it - round trip done; more todos coming*
-- *19 Oct 2020: resuming wheredoc group tests, empty doc, empty params, better error messages*
-- *dirt redistribution (berms)*
-- *19-20 Oct: docstring variant started*
-- *26-28 Oct 2020:
-  - tests not complete as they should be; design works seems hard to follow (and so do the tests);
-  - docstring variant supports both where(spec) or where({ doc, test });
-  - better regex for row extractions
-  - doctring in spec function demarcated by a `where:` label, following by multiline string `...`;
-  - support testing of the transformation process by exporting `where.doc.<method>` namespace;
-  - refactoring the new design in draft.js;
-  - supports external fence posts ( | a | b | c | OR a | b | c);
-- *29-30 Oct 2020: draft about ready for re-testing; changed outline to correct, added corrections;*
-- *Nov 1: start putting draft,js under new test.js*
-
-Use docstring-like data tables in JavaScript tests, similar to Cucumber `scenario outline` examples or Spock `where` blocks.
 
 Status:
 + Docs incomplete.
 + Test cases incomplete.
 + Squatting name to replace and deprecate where.js. 
 
+Progress:
+- *started: 2 Oct 2020*
+- *3 Oct 2020: in progress*
+- *2 week break for irrigation, faucet, buddleia, downspout drainage, fence post*
+- *16 Oct 2020: getting back to it - round trip done; more todos coming*
+- *19 Oct 2020: resuming wheredoc group tests, empty doc, empty params, better error messages*
+- *dirt redistribution (berms)*
+- *19-20 Oct: docstring variant started*
+- *wheredoc redesign by hand on binder paper*
+- *26-28 Oct 2020:
+  - tests still incomplete; design works but is hard to follow (same with tests);
+  - docstring draft supports both where(spec) or where({ doc, test });
+  - better regex for row extractions
+  - doctring in spec function demarcated by a `where:` label, following by multiline string `...`;
+  - support testing the transformation sequence by exporting `where.doc.<method>` namespace;
+  - refactoring the new design in draft.js;
+  - supports external table borders ( | a | b | c | OR a | b | c);
+- *29-30 Oct 2020: draft about ready for re-testing; changed outline to correct, added corrections;*
+- *Nov 1: started putting draft,js under new test.js*
+- *Nov 2: test.js has draft.js covered.*
+
+Use docstring-like data tables in JavaScript tests, similar to Cucumber `scenario outline` examples or Spock `where` blocks.
+
 ## Run tests
 
-`npm run mocha`
+`npm test`
 
 ## Prior art
 
@@ -198,7 +202,7 @@ tape('suite', function(test) {
 + done better error messaging
 + done more `parse()` assertions (comments, commented rows)
 + done convert "Number.RESERVED_CONSTANT" to Number.RESERVED_CONSTANT
-+ done convert Objects and Arrays -- uses `Function("return (" + value +");")(0)`
++ done convert Objects and Arrays -- uses `Function("return (" + value +");").call()`
   - merge a and b to get c:
   - { name: 'test' } | { value: 'added' } | { name: 'test', value: 'added' }
   - concat a and b to get c:
@@ -209,9 +213,8 @@ tape('suite', function(test) {
 + support localized currency, number formats
   - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat
 
-+ verifying DOM structure, element presence, attributes
 
-+ **in progress**: base test suite for wheredoc itself
++ **done** test suite for refactored wheredoc
 
 + create nodejs usage examples
   - mocha TDD
@@ -220,6 +223,7 @@ tape('suite', function(test) {
 + create browser usage examples (using live-server)
   - mocha BDD
   - qunit
++ verifying DOM structure, element presence, attributes
 
 + (not covered: jest, jasmine, ava, riteway, cypress)
 
@@ -235,41 +239,8 @@ tape('suite', function(test) {
 ## docstring function variant - in progress 21 october 2020
 
 ```js
-// doc is a docstring or a function containing a docstring. If it's a function,
-// and test is not defined as a function, doc will be used as the test function.
-function where({ doc, test }) {
-  // Object(doc): if doc is nothing, get a base object; else it returns doc unmodified.
-  var fs = Object(doc).toString();
-  var match = fs.match(/(?:where[^\n]*[\n])(([^\|]*\|)+[^\n]*[\n])/);
-  // When match fails to match, it returns null. We check that match exists
-  // and that its second entry which excludes the non-captured group also
-  // exists; if it does, then match[1] is assigned; otherwise fall back to the
-  // empty string.
-  var ds = match && match[1] || "";
-
-// About /(?:where[^\n]*[\n])(([^\|]*\|)+[^\n]*[\n])/
-// That RegExp extracts each row of the data table after the where label (non capture),
-// containing at least one | and newline, and supports multiple formats, starting
-// with a `where:` label inside the doc test function:
-
-//  where: ` ... `;
-//  where: /* ... */; <-- requires trailing semi-colon if no other statements follow>
-//  where: " ... \n\ ... ";
-//  where: () => { .... };
-
-  console.log(ds);
-  
-  var fn = typeof test == 'function'
-    ? test
-    : typeof doc == 'function
-      ? doc
-      : function() { throw new Error(`No test function defined for doc, ${ doc }`) };
-
-    fn(/* params */);
-}
-
 // docstring function
-function doc(a, b, c) {
+function spec(a, b, c) {
   where: `
   a  |  b  |  c
   1  |  2  |  3
@@ -280,19 +251,24 @@ function doc(a, b, c) {
   expect(a + b).to.equal(c);
   expect(c - a).to.equal(b);
 }
+```
 
-// where returns an array of scenarios, one for each data row, including its
-// name (param list) and a test function that you pass to your testing library's
-// it or test. Here's a destructuring assignment example:
-spec(test).scenarios.forEach(scenario => {
-  var { params: p } = scenario
+`where` returns an array of scenarios, one for each data row, including its `params` map and a `test` function that you pass to your testing library's `it` or `test` functions. Here's a destructuring assignment example:
 
-  it(`with ${p.a} and ${p.b}, should get ${p.c}`, scenario.apply)
+```js
+where(spec).forEach(scenario => {
+  var { params: p, test } = scenario
+
+  it(`with ${p.a} and ${p.b}, should get ${p.c}`, test)
 })
+```
 
-// If there's a name conflict with `test`, however, you can de-conflict by using
-// the non-destructured scenario (or item or other name), for example:
+If there's a name conflict with `test`, however, you can de-conflict by using an alias when destructuring the scenario, for example:
+
+```js
 where({ doc }).scenarios.forEach(scenario => {
-  test(scenario.name, scenario.test);
+  var { params: p, test: t } = scenario
+
+  test(`with ${p.a} and ${p.b}, should get ${p.c}`, t)
 });
 ```
