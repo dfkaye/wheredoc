@@ -229,10 +229,10 @@ function convert({ tokens }) {
     reNumberConstant: /^Number.[A-Z]+/,
     objectOrArrayLiteral: {
       test: function (token) {
-        var o = token[0] == "{" && token[token.length - 1] == "}";
-        var a = token[0] == "[" && token[token.length - 1] == "]";
+        var first = token[0]
+        var last = token[token.length - 1]
 
-        return o || a;
+        return (first == "{" && last == "}") || (first == "[" && last == "]");
       }
     }
   }
