@@ -49,10 +49,10 @@ describe("wheredoc", () => {
 
         var scenarios = where(spec)
 
-        scenarios.forEach(scenario => {
-          var { params: p, test } = scenario;
+        scenarios.forEach(({ params, test }) => {
+          var { a, b, c } = params;
 
-          it(`with ${p.a} and ${p.b}, expect ${p.c}`, test)
+          it(`with ${a} and ${b}, expect ${c}`, test)
         })
 
         describe("where: block table contains external table borders (| separators)", () => {
@@ -69,10 +69,10 @@ describe("wheredoc", () => {
 
           var scenarios = where(spec)
 
-          scenarios.forEach(scenario => {
-            var { params: p, test } = scenario;
+          scenarios.forEach(({ params, test }) => {
+            var { a, b, c } = params;
 
-            it(`with ${p.a} and ${p.b}, expect ${p.c}`, test)
+            it(`with ${a} and ${b}, expect ${c}`, test)
           })
         })
       })
@@ -92,10 +92,10 @@ describe("wheredoc", () => {
 
         var scenarios = where(spec)
 
-        scenarios.forEach(scenario => {
-          var { params: p, test } = scenario;
+        scenarios.forEach(({ params, test }) => {
+          var { a, b, c } = params;
 
-          it(`with ${p.a} and ${p.b}, expect ${p.c}`, test)
+          it(`with ${a} and ${b}, expect ${c}`, test)
         })
 
         describe("doc table contains external table borders (| separators)", () => {
@@ -112,10 +112,10 @@ describe("wheredoc", () => {
 
           var scenarios = where(spec)
 
-          scenarios.forEach(scenario => {
-            var { params: p, test } = scenario;
+          scenarios.forEach(({ params, test }) => {
+            var { a, b, c } = params;
 
-            it(`with ${p.a} and ${p.b}, expect ${p.c}`, test)
+            it(`with ${a} and ${b}, expect ${c}`, test)
           })
         })
       })
@@ -328,10 +328,10 @@ describe("wheredoc", () => {
 
         var scenarios = where.doc.factory(spec)
 
-        scenarios.forEach(scenario => {
-          var { params: p, test } = scenario;
+        scenarios.forEach(({ params, test }) => {
+          var { a, b, c } = params;
 
-          it(`with ${p.a} and ${p.b}, expect ${p.c}`, test)
+          it(`with ${a} and ${b}, expect ${c}`, test)
         })
       })
 

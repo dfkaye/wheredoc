@@ -55,10 +55,10 @@ tape('tape passing example', function (test) {
   test.plan(scenarios.length);
 
   scenarios.forEach(scenario => {
-    var { params: p } = scenario
+    var { a, b, c } = scenario.params
 
     // You can use params in a tape comment.
-    test.comment(`with ${p.a} and ${p.b}, expect ${p.c}`)
+    test.comment(`with ${a} and ${b}, expect ${c}`)
 
     scenario.test();
   });
@@ -103,9 +103,9 @@ tape('tape error example', function (test) {
   test.plan(scenarios.length * 2);
 
   scenarios.forEach(scenario => {
-    var { params: p } = scenario
+    var { a, b, c } = scenario.params
 
-    var testName = `should throw when ${p.a} + ${p.b} isn't ${p.c}`;
+    var testName = `should throw when ${a} + ${b} isn't ${c}`;
 
     // tape catches thrown Test and reports as ok, e.g.,
     // ok 8 throws when X + Y isn't Z

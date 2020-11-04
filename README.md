@@ -134,9 +134,9 @@ describe('bdd', (done) => {
   }
 
   where(spec).forEach(scenario => {
-    var { params: p, test } = scenario
+    var { a, b, c } = scenario.params
 
-    it(`with ${p.a} and ${p.b}, should get ${p.c}`, test)
+    it(`with ${a} and ${b}, should get ${c}`, scenario.test)
   });
 
   done();
@@ -158,9 +158,9 @@ suite('tdd', (done) => {
   }
 
   where(spec).forEach(scenario => {
-    var { params: p, test: t } = scenario
+    var { a, b, c } = scenario.params
 
-    test(`with ${p.a} and ${p.b}, should get ${p.c}`, t)
+    test(`with ${a} and ${b}, should get ${c}`, scenario.test)
   });
 
   done();
@@ -186,9 +186,9 @@ Qunit.test('where', (test) => {
   }
 
   where(spec).forEach(scenario => {
-    var { params: p, test: t } = scenario
+    var { a, b, c } = scenario.params;
 
-    test(`with ${p.a} and ${p.b}, should get ${p.c}`, t)
+    test(`with ${a} and ${b}, expect ${c}`, scenario.test)
   });
 
   done();
@@ -200,7 +200,8 @@ Qunit.test('where', (test) => {
 ```
 tape('suite', function(test) {
   function spec(a, b, c) {
-    test.equal(a + b, c);
+
+    test.equal(a + b, c, `with ${a} and ${b}, expect ${c}`);
 
     where: `
     a | b | c
@@ -210,9 +211,9 @@ tape('suite', function(test) {
   }
 
   where(spec).forEach(scenario => {
-    var { params: p, test: t } = scenario
+    var { a, b, c } = scenario.params;
 
-    test(`with ${p.a} and ${p.b}, should get ${p.c}`, t)
+    scenario.test()
   });
 
   test.end();
