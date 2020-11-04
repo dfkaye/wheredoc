@@ -19,6 +19,9 @@ import { createRequire } from 'module';
 let require = createRequire(import.meta.url);
 let tape = require("tape");
 
+// use tape-describe
+let describe = require("tape-describe")
+
 /*
  * To import an ES6 module (in this case, where.js):
  *  - use dynamic import() function
@@ -68,6 +71,8 @@ tape('tape error example', function (test) {
   function spec(a, b, c) {
 
     // tape's test runs here, and accepts a testName param.
+    // Without that param, tape will print its own error, e.g.,
+    // Error: should be strictly equal
     test.equal(a + b, c, `with ${a} and ${b}, expect ${c}`);
 
     /*
@@ -100,13 +105,50 @@ tape('tape error example', function (test) {
   scenarios.forEach(scenario => {
     var { params: p } = scenario
 
-    // You can use params in a tape comment.
-    test.comment(`with ${p.a} and ${p.b}, expect ${p.c}`)
+    var testName = `should throw when ${p.a} + ${p.b} isn't ${p.c}`;
 
-    // tape catches thrown Test and reports as ok
-    test.throws(scenario.test(), "should throw")
+    // tape catches thrown Test and reports as ok, e.g.,
+    // ok 8 throws when X + Y isn't Z
+    test.throws(scenario.test(), testName)
   });
 
   // Or you can call end() when done.
   test.end();
+});
+
+// using tape-describe
+describe('using tape-describe', it => {
+  it('should work', test => {
+    function spec(a, b, c) {
+      test.equal(a + b, c, `with ${a} and ${b}, expect ${c}`);
+
+      where: `
+      a | b | c
+      3 | 5.5 | 8.5 
+      `;
+    }
+
+    where(spec).forEach(scenario => {
+      scenario.test()
+    })
+
+    test.end();
+  });
+
+  it('should fail', test => {
+    function spec(a, b, c) {
+      test.equal(a + b, c, `with ${a} and ${b}, expect ${c}`);
+
+      where: `
+      a | b | c
+      B | A | ABC 
+      `;
+    }
+
+    where(spec).forEach(scenario => {
+      scenario.test()
+    })
+
+    test.end();
+  });
 });
