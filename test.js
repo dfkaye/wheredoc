@@ -281,6 +281,34 @@ describe("wheredoc", () => {
         expect(status).to.equal("initial")
       });
     })
+
+    describe("on string entries and concatenation", () => {
+      it("preserves string tokens", () => {
+        var scenarios = where(function (a, b, c) {
+          expect(c).to.equal(a + b);
+
+          where: `
+          a | b | c
+          A | B | AB
+          `
+        });
+
+        scenarios[0].test()
+      });
+
+      it("preserves quoted string tokens", () => {
+        var scenarios = where(function (a, b, c) {
+          expect(c).to.equal(a + b);
+
+          where: `
+          a | b | c
+          "A ", | "B " | "A ","B " // Watch out, this is subtle.
+          `
+        });
+
+        scenarios[0].test()
+      });
+    })
   })
 
   describe("where.doc API", () => {

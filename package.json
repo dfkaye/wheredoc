@@ -6,9 +6,9 @@
   "type": "module",
   "scripts": {
     "test": "node node_modules/mocha/bin/mocha test.js",
-    "mocha": "node node_modules/mocha/bin/mocha test/mocha/node-suite.js",
-    "qunit": "node ./test/qunit/node-suite.js",
-    "tape": "node ./test/tape/node-suite.js"
+    "mocha": "node node_modules/mocha/bin/mocha examples/mocha/node-suite.js",
+    "qunit": "node ./examples/qunit.js",
+    "tape": "node ./examples/tape.js"
   },
   "repository": {
     "type": "git",
@@ -25,17 +25,19 @@
   "homepage": "https://github.com/dfkaye/wheredoc#readme",
   "keywords": [
     "TDD",
-    "where",
-    "where-data",
-    "data-driven",
-    "data-table",
-    "data-table-driven",
+    "wheredoc",
+    "where.js",
+    "heredoc",
+    "doctest",
+    "data-driven test",
+    "data-table test",
     "mocha",
     "qunit",
     "tape"
   ],
   "devDependencies": {
     "chai": "^4.2.0",
-    "mocha": "^8.1.3"
+    "mocha": "^8.1.3",
+    "tape": "^5.0.1"
   }
 }
