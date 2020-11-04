@@ -25,6 +25,7 @@ Progress:
 - *29-30 Oct 2020: draft about ready for re-testing; changed outline to correct, added corrections;*
 - *Nov 1: started putting draft,js under new test.js*
 - *Nov 2: test.js has draft.js covered.*
+- *Nov 4: string token tests, working examples for [tape](https://github.com/substack/tape) and [tape-describe](https://github.com/mattriley/tape-describe)*
 
 Use docstring-like data tables in JavaScript tests, similar to Cucumber `scenario outline` examples or Spock `where` blocks.
 
@@ -235,7 +236,7 @@ tape('suite', function(test) {
 + create nodejs usage examples
   - mocha TDD
   - qunit - https://qunitjs.com/intro/#in-node
-  - tape
+  - **done** tape
 + create browser usage examples (using live-server)
   - mocha BDD
   - qunit
@@ -274,7 +275,7 @@ function spec(a, b, c) {
 }
 ```
 
-`where` returns an array of scenarios, one for each data row, including its `params` map and a `test` function that you pass to your testing library's `it` or `test` functions. Here's a destructuring assignment example:
+`where` returns an array of scenarios, one for each data row, including its `params` map and a `test` function that you pass to your testing library's `it` or `test` functions. Here's a destructuring assignment example.
 
 ```js
 where(spec).forEach(scenario => {
@@ -284,7 +285,7 @@ where(spec).forEach(scenario => {
 })
 ```
 
-If there's a name conflict with `test`, however, you can de-conflict by using an alias when destructuring the scenario, for example:
+If there's a name conflict with `test`, however, you can de-conflict by using an alias when destructuring the scenario, for example,
 
 ```js
 where(spec).scenarios.forEach(scenario => {
@@ -293,3 +294,5 @@ where(spec).scenarios.forEach(scenario => {
   test(`with ${p.a} and ${p.b}, should get ${p.c}`, t)
 });
 ```
+
+or reference `scenario.test`.
