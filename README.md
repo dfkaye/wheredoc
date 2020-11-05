@@ -1,5 +1,7 @@
 # wheredoc
 
+Use docstring-like data tables in JavaScript tests, similar to Cucumber `scenario outline` examples or Spock `where` blocks.
+
 Status:
 + Docs incomplete.
 + Test cases incomplete.
@@ -26,8 +28,7 @@ Progress:
 - *Nov 1: started putting draft,js under new test.js*
 - *Nov 2: test.js has draft.js covered.*
 - *Nov 4: string token tests, working examples for [tape](https://github.com/substack/tape) and [tape-describe](https://github.com/mattriley/tape-describe)*
-
-Use docstring-like data tables in JavaScript tests, similar to Cucumber `scenario outline` examples or Spock `where` blocks.
+- *Nov 5: added examples for [qunit](https://qunitjs.com/) using [quit-tap](https://github.com/twada/qunit-tap).*
 
 ## Run tests
 
@@ -111,7 +112,7 @@ it('description', function () {
 
 ## Decoupling
 
-[wheredoc](https://github.com/dfkaye/wheredoc) no longer supports the notions of log](https://github.com/dfkaye/where.js#log) or [intercept](https://github.com/dfkaye/where.js#intercept). These were added to where.js for the sake of identifying individual rows within a table where the expectation fails and printing (pass) or (fail) next to them in the test results.
+[wheredoc](https://github.com/dfkaye/wheredoc) no longer supports the notions of [log](https://github.com/dfkaye/where.js#log) or [intercept](https://github.com/dfkaye/where.js#intercept). These were added to where.js for the sake of identifying individual rows within a table where the expectation fails and printing (pass) or (fail) next to them in the test results.
 
 Now, instead of the `where` clause appearing inside of `it` or `test` statements, `where` generates row data and returns an array. You then call `map` or `forEach` on that array, accepting a function param in your iterator, and then calling that function which in turn runs your `test` function containing the assertions.
 
@@ -169,30 +170,36 @@ suite('tdd', (done) => {
 
 ### QUnit
 
+Note: On node.js, we use qunit-tap to print the QUnit test results to the console.
+
 ```
-Qunit.module('suite');
+let { module: describe, test: it } = QUnit
 
-Qunit.test('where', (test) => {
-  var done = test.async();
+describe("wheredoc", hooks => {
+  it('should run the equals test', function (assert) {
+    var done = assert.async();
 
-  function spec(a, b, c) {
-    test.equal(a + b, c);
+    function spec(a, b, c) {
+      assert.equal(a + b, c, `with ${a} and ${b} expect ${c}.`);
 
-    where: `
-    a | b | c
-    1 | 2 | 3
-    "h" | 'b' | "one, 'please'" // should fail
-    `;
-  }
+      where: `
+      a | b | c
+      1 | 2 | 3
+      "h" | 'b' | "one, 'please'" // should fail
+      `;
+    }
 
-  where(spec).forEach(scenario => {
-    var { a, b, c } = scenario.params;
+    where(spec).forEach((scenario, i) => {
+      scenario.test();
+    });
 
-    test(`with ${a} and ${b}, expect ${c}`, scenario.test)
-  });
+    done();
+  })
+})
 
-  done();
-});
+// Finally, call QUnit.start().
+// https://api.qunitjs.com/config/QUnit.config/
+QUnit.start()
 ```
 
 ### tape
@@ -211,8 +218,6 @@ tape('suite', function(test) {
   }
 
   where(spec).forEach(scenario => {
-    var { a, b, c } = scenario.params;
-
     scenario.test()
   });
 
@@ -236,7 +241,7 @@ tape('suite', function(test) {
 
 + create nodejs usage examples
   - mocha TDD
-  - qunit - https://qunitjs.com/intro/#in-node
+  - **done** qunit - https://qunitjs.com/intro/#in-node
   - **done** tape
 + create browser usage examples (using live-server)
   - mocha BDD

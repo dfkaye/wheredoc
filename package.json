@@ -1,6 +1,6 @@
 {
   "name": "wheredoc",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "ES6-friendly version of where.js, data-table-driven support module for JavaScript test libraries.",
   "main": "where.js",
   "type": "module",
@@ -33,11 +33,15 @@
     "data-table test",
     "mocha",
     "qunit",
-    "tape"
+    "qunit-tap",
+    "tape",
+    "tape-describe"
   ],
   "devDependencies": {
     "chai": "^4.2.0",
     "mocha": "^8.1.3",
+    "qunit": "^2.11.3",
+    "qunit-tap": "^1.5.1",
     "tape": "^5.0.1",
     "tape-describe": "^1.0.3"
   }
