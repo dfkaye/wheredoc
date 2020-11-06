@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>wheredoc with Mocha+Chai BDD Test Suite</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- content security policy for demo purposes -->
+  <!--
+    <meta http-equiv="Content-Security-Policy" content="base-uri 'none';
+    object-src 'none';
+    script-src 'self' 'strict-dynamic' 'nonce-4AEemGb0xJptoIGFP3Nd' https://unpkg.com;
+    script-src-elem 'self' 'strict-dynamic' 'nonce-4AEemGb0xJptoIGFP3Nd' https://unpkg.com;
+    style-src 'self' 'nonce-4AEemGb0xJptoIGFP3Nd' https://unpkg.com;
+    style-src-elem 'self' 'nonce-4AEemGb0xJptoIGFP3Nd' https://unpkg.com;">
+  -->
+  <script nonce="4AEemGb0xJptoIGFP3Nd" src="/live-server-fix.js"></script>
+</head>
+
+<body>
+  <section>
+    <link nonce="4AEemGb0xJptoIGFP3Nd" rel="stylesheet" href="https://unpkg.com/mocha/mocha.css">
+    <style nonce="4AEemGb0xJptoIGFP3Nd">
+      [mocha-fixture] {
+        margin: 60px 50px;
+      }
+
+      [fixture-list] {
+        list-style-type: none;
+      }
+
+      [test-fixture] h3 {
+        color: cornflowerblue;
+      }
+
+      [test-fixture] input:invalid {
+        outline: 2px solid red;
+      }
+    </style>
+
+    <div id="mocha">
+      <h1>wheredoc with Mocha+Chai BDD Test Suite</h1>
+    </div>
+
+    <div id="fixture" mocha-fixture>
+      <h2>DOM fixtures</h2>
+      <ul fixture-list></ul>
+    </div>
+
+    <script nonce="4AEemGb0xJptoIGFP3Nd" type="module">
+      import "https://unpkg.com/chai@4.2.0/chai.js"
+      import "https://unpkg.com/mocha@8.2.1/mocha.js"
+
+      mocha.setup('bdd')
+    </script>
+
+    <script nonce="4AEemGb0xJptoIGFP3Nd" type="module">
+      import { where } from '../draft.js';
+
+      describe("wheredoc with mocha+chai bdd example", () => {
+        let { expect } = chai;
+
+        describe("where", () => {
+          describe("pass", () => {
+            function spec(a, b, c) {
+              expect(c).to.equal(a + b);
+
+              where: `
+                a | b | c
+                1 | 2 | 3
+                A | B | AB
+              `;
+            }
+
+            where(spec).forEach(({ params, test }) => {
+              var { a, b, c } = params;
+
+              it(`with ${a} and ${b} expect ${c}.`, test)
+            })
+          })
+
+          describe("failing", () => {
+            function spec(a, b, c) {
+              expect(c).to.equal(a + b);
+
+              where: `
+                a | b | c
+                a | b | bonk
+              `;
+            }
+
+            where(spec).forEach(({ params, test }) => {
+              var { a, b, c } = params;
+
+              it(`should fail.`, test)
+            })
+          })
+        })
+
+        describe("DOM fixtures", () => {
+          var fixture = document.querySelector("[mocha-fixture]");
+          var list = fixture.querySelector("[fixture-list]")
+          var parser = new DOMParser()
+
+          describe("Checkbox test", () => {
+            var dom = parser.parseFromString(`
+            <li test-fixture="checkbox-test">
+              <h3>Checkbox test</h3>
+              <input type=checkbox id="test-checkbox">
+              <label for=test-checkbox>Yes?</label>
+            </li>
+            `, "text/html");
+
+            list.appendChild(dom.querySelector("[test-fixture]"))
+
+            var fixture = list.querySelector("[test-fixture=checkbox-test]")
+            var label = fixture.querySelector("[for=test-checkbox]");
+            var checkbox = fixture.querySelector("[type=checkbox]")
+
+            function spec(action, checked) {
+              label[action]()
+
+              expect(checkbox.checked).to.equal(checked)
+
+              where: `
+              action  | checked
+              click   |   true
+              click   |   false
+              click   |   true
+              blur    |   true
+              click   |   false
+              click   |   true
+            `;
+            }
+
+            where(spec).forEach(({ params, test }) => {
+              var { action, checked } = params;
+
+              it(`on *${action}*, checkbox should ${checked ? "" : "*not*"} be *checked*.`, test)
+            })
+          })
+
+          describe("Validation test", () => {
+            var dom = parser.parseFromString(`
+            <li test-fixture="validation-test">
+              <h3>Validation test</h3>
+              <form validation-form>
+                <label for="test-validation">Should start with 5 digits, followed by alphanumeric.</label>
+                <input id="test-validation" validation-input required pattern="([0-9]{5,})+[A-z\d]*">
+                <button validation-button>Valid?</button>
+              </form>
+            </li>
+            `, "text/html");
+
+            list.appendChild(dom.querySelector("[test-fixture]"))
+
+            var fixture = list.querySelector("[test-fixture=validation-test]")
+            var input = fixture.querySelector("[validation-input]")
+            var button = fixture.querySelector("[validation-button]")
+
+            button.onclick = function (e) {
+              // Don't submit the form, to prevent a page refresh.
+              e.preventDefault()
+
+              var match = input.matches(":valid");
+              button.textContent = match ? "Valid" : "Invalid"
+            }
+
+            // This lets us test the fixture manually.
+            input.oninput = function (e) {
+              var match = input.matches(":valid");
+              button.textContent = match ? "Valid" : "Invalid"
+            }
+
+            function spec(value, valid) {
+              input.value = value;
+              button.click()
+              expect(input.matches(":valid")).to.equal(valid)
+
+              where: `
+              value | valid
+                    | false 
+              thing | false
+              123   | false
+              94102 | true
+              123456789 | true
+              12345-4589 | false
+              12345abc | true
+            `;
+            }
+
+            where(spec).forEach(({ params, test }) => {
+              var { value, valid } = params;
+
+              it(`on *${value}*, input should ${valid ? "" : "*not*"} be *valid*.`, test)
+            })
+          })
+        })
+      })
+    </script>
+
+    <script nonce="4AEemGb0xJptoIGFP3Nd" type="module">
+      mocha.checkLeaks();
+      mocha.run();
+    </script>
+  </section>
+</body>
+
+</html>

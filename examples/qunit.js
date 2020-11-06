@@ -1,8 +1,8 @@
 /*
- * This suite is run with qunit.
+ * This suite runs with qunit and qunit-tap on NodeJS.
  * Run this suite from wheredoc root using:
  * 
- *    npm run qunit
+ *    npm run qunit-node
  * 
  * Suite uses import syntax. Dependencies can be required or imported per the
  * steps outlined next.

@@ -7,8 +7,9 @@
   "scripts": {
     "test": "node node_modules/mocha/bin/mocha test.js",
     "mocha": "node node_modules/mocha/bin/mocha examples/mocha/node-suite.js",
-    "qunit": "node ./examples/qunit.js",
-    "tape": "node ./examples/tape.js"
+    "qunit-node": "node ./examples/qunit.js",
+    "tape": "node ./examples/tape.js",
+    "bdd": "live-server --host=localhost --port=9090 --open=examples/bdd.html"
   },
   "repository": {
     "type": "git",

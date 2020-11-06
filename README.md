@@ -243,8 +243,8 @@ tape('suite', function(test) {
   - mocha TDD
   - **done** qunit - https://qunitjs.com/intro/#in-node
   - **done** tape
-+ create browser usage examples (using live-server)
-  - mocha BDD
++ create browser usage examples (using [live-server](https://github.com/tapio/live-server))
+  - **done** mocha BDD
   - qunit
 + verifying DOM structure, element presence, attributes
 + support localized currency, number formats
