@@ -710,8 +710,10 @@ describe("wheredoc", () => {
           "5!",
           "$5",
           "6 * 6",
-          "He said, \"Hello.\""
+          "He said, \"Hello.\"",
+          '"{ key: \"quoted object string\" }"'
         ]
+
         var actual = where.doc.convert({ tokens });
 
         expect(actual).to.deep.equal(tokens);
@@ -810,25 +812,25 @@ describe("wheredoc", () => {
         expect(actual[7]).to.equal(Math.SQRT2);
       })
 
-      it('string Arrays convert to real Arrays', () => {
+      it('JSON Arrays convert to real Arrays', () => {
         var tokens = [
           `[ "one", true, 3 ]`,
           `[[ "matrix" ], [ "matrix" ]]`,
-          `[{ name: "first" }, { name: "second" }]`
-        ]
+          `[{ "name": "first" }, { "name": "second" }]`
+        ];
         var actual = where.doc.convert({ tokens });
 
         expect(actual[0]).to.deep.equal(["one", true, 3]);
         expect(actual[1]).to.deep.equal([["matrix"], ["matrix"]]);
-        expect(actual[2]).to.deep.equal([{ name: "first" }, { name: "second" }]);
+        expect(actual[2]).to.deep.equal([{ "name": "first" }, { "name": "second" }]);
       })
 
-      describe('string Objects convert to real Objects', () => {
+      describe('JSON Objects convert to real Objects', () => {
         it("array, matrix, list", () => {
           var tokens = [
-            `{ array: [ "one", true, 3 ] }`,
-            `{ matrix: [[ "matrix" ], [ "matrix" ]] }`,
-            `{ list: [{ name: "first" }, { name: "second" }] }`
+            `{ "array": [ "one", true, 3 ] }`,
+            `{ "matrix": [[ "matrix" ], [ "matrix" ]] }`,
+            `{ "list": [{ "name": "first" }, { "name": "second" }] }`
           ]
           var actual = where.doc.convert({ tokens });
 
@@ -837,26 +839,26 @@ describe("wheredoc", () => {
           expect(actual[2]).to.deep.equal({ list: [{ name: "first" }, { name: "second" }] });
         })
 
-        it("catches evaluation errors", () => {
+        it("catches JSON parsing errors", () => {
           var tokens = [
-            `{ bonk }`, // not defined
-            `{ valueOf: () => { throw new Error("Shazam") } }`, // throws
-            `{ { }`, // unexpected token
-            `[ [ ]`  // unexpected token
+            `{ bonk }`, // unexpected token b
+            `{ "valueOf": function () { } }`, // unexpected token
+            `{ { }`, // unexpected token {
+            `[ [ ]`  // unexpected end of input
           ];
-
           var actual = where.doc.convert({ tokens });
-          expect(actual[0]).to.be.an("error")
-          expect(actual[0].message).to.include("bonk is not defined");
 
-          var fn = () => "" + actual[1]
-          expect(fn).to.throw("Shazam");
+          expect(actual[0]).to.be.an("error")
+          expect(actual[0].message).to.include("Unexpected token b in JSON at position 2");
+
+          expect(actual[1]).to.be.an("error")
+          expect(actual[1].message).to.include("Unexpected token u in JSON at position 14")
 
           expect(actual[2]).to.be.an("error")
-          expect(actual[2].message).to.include("Unexpected token");
+          expect(actual[2].message).to.include("Unexpected token { in JSON at position 2");
 
           expect(actual[3]).to.be.an("error")
-          expect(actual[3].message).to.include("Unexpected token");
+          expect(actual[3].message).to.include("Unexpected end of JSON input");
         })
       })
     })

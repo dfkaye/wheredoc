@@ -11,11 +11,8 @@
     Can't run mocha 8 with strict CSP because of dependency on the incompetent
     Facebook's Regenerator runtime.js (oo oo, generators) which uses Function("return this")()
     on line 726, making mocha browser tests incompatible with strict content
-    security policy.
+    security policy. Translation: have to use 'unsafe-eval' in script-src, script-src-elem.
   -->
-
-  <!-- Wait, where.doc.evaluate() method used Function()... /o\ ... o_O .. -->
-
   <meta http-equiv="Content-Security-Policy" content="base-uri 'none';
     object-src 'none';
     script-src 'self' 'unsafe-eval' 'strict-dynamic' 'nonce-4AEemGb0xJptoIGFP3Nd' https://unpkg.com;

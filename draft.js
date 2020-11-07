@@ -220,26 +220,46 @@ function scenario({ keys, tokens, index, test }) {
 // functions not supported
 // quoted strings returned as is.
 function convert({ tokens }) {
-  var expressions = {
-    reBoolean: /^(false|true)$/,
-    reVoid: /^(null|undefined)$/,
-    reNaN: /^NaN$/,
-    reInfinity: /^[-]?Infinity$/,
-    reMathConstant: /^Math.[A-Z]+/,
-    reNumberConstant: /^Number.[A-Z]+/,
-    objectOrArrayLiteral: {
-      test: function (token) {
-        var first = token[0]
-        var last = token[token.length - 1]
-
-        return (first == "{" && last == "}") || (first == "[" && last == "]");
-      }
-    }
-  }
-
   return tokens.map(token => {
-    // Return from the possibly not NaN numeric case first.
+    if (/^(false|true)$/.test(token)) {
+      // Gist: https://gist.github.com/dfkaye/ce346446dee243173cd199e51b0c51ac
+      return (true).toString() === token;
+    }
+
+    if (/^(null|undefined)$/.test(token)) {
+      return token === "null"
+        ? null
+        : undefined;
+    }
+
+    if (/^NaN$/.test(token)) {
+      return NaN;
+    }
+
+    if (/^[-]?Infinity$/.test(token)) {
+      return (
+        token < 0
+          ? -Infinity
+          : Infinity
+      );
+    }
+
+    if (/^Number.[A-Z]+/.test(token)) {
+      // Number.NEGATIVE_INFINITY
+      var field = token.split(".")[1];
+
+      return Number[field];
+    }
+
+    if (/^Math.[A-Z]+/.test(token)) {
+      // Math.PI
+      var field = token.split(".")[1];
+
+      return Math[field];
+    }
+
     if (/\d+/g.test(token) && !/[\'|\"]/g.test(token)) {
+      // Possibly a number but not NaN if it contains a digit: .1, +1, -1, 1e1
       var string = token.replace(/\,/g, "");
       var number = Number(string)
 
@@ -249,31 +269,23 @@ function convert({ tokens }) {
       }
     }
 
-    // Otherwise try each expression test until we get a match. If we get one,
-    // try to evaluate it. Assign success or failure to the value variable,
-    // and halt processing of some() by returning match.
+    // Test for JSON object or array literal
+    var first = token[0];
+    var last = token[token.length - 1];
 
-    var value = token;
+    if (first == "{" && last == "}" || first == "[" && last == "]") {
+      try {
+        var object = JSON.parse(token)
 
-    Object.keys(expressions).some(name => {
-      var match = expressions[name].test(token)
-
-      if (match) {
-        try {
-          value = Function("return (" + token + ");").call()
-        }
-        catch (error) {
-          value = error
-        }
-        finally {
-          // This stops some from continuing.
-          return match
-        }
+        return object
       }
-    })
+      catch (error) {
+        return error
+      }
+    }
 
     // Default case, edifyingly annotated.
-    return value;
+    return token;
   })
 }
 

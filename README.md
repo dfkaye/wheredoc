@@ -30,6 +30,7 @@ Progress:
 - *Nov 4: string token tests, working examples for [tape](https://github.com/substack/tape) and [tape-describe](https://github.com/mattriley/tape-describe)*
 - *Nov 5: added examples for [qunit](https://qunitjs.com/) using [quit-tap](https://github.com/twada/qunit-tap).*
 - *Nov 6: added examples for mocha browser and qunit browser suites.; re-considering Function() support in the evaluate() method due to strict CSP.*
+- *Nov 7: reverted convert() to use JSON.parse() on object/array strings, allowing strict no-eval CSP in QUnit tests; mocha browser tests still requires unsafe-eval due to regenerator-runtime.js dependency. *
 
 ## Run tests
 
@@ -247,9 +248,9 @@ tape('suite', function(test) {
 + **done** try the docstring function that contains a where: label (see below)
 + **done** test suite for refactored wheredoc
 
-+ **RECONSIDER** support for Objects and Arrays, *because* of `eval/Function`
-  - may need json normalize to make writing easier,
-  - OR require valid JSON and run JSON.parse(json).
++ **done** RECONSIDER support for Objects and Arrays, *because* of `eval/Function` in strict CSP environments
+  - *no* may need json normalize to make writing easier,
+  - **yes** OR require valid JSON and run JSON.parse(json).
 
 + create nodejs usage examples
   - **SIMPLIFY** mocha TDD
