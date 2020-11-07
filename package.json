@@ -1,6 +1,6 @@
 {
   "name": "wheredoc",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "ES6-friendly version of where.js, data-table-driven support module for JavaScript test libraries.",
   "main": "where.js",
   "type": "module",
