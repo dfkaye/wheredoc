@@ -29,11 +29,19 @@ Progress:
 - *Nov 2: test.js has draft.js covered.*
 - *Nov 4: string token tests, working examples for [tape](https://github.com/substack/tape) and [tape-describe](https://github.com/mattriley/tape-describe)*
 - *Nov 5: added examples for [qunit](https://qunitjs.com/) using [quit-tap](https://github.com/twada/qunit-tap).*
+- *Nov 6: added examples for mocha browser and qunit browser suites.; re-considering Function() support in the evaluate() method due to strict CSP.*
 
 ## Run tests
 
-`npm test`
-
++ main suite: `npm test`
++ node examples:
+  - mocha & chai: `npm run mocha-node`
+  - qunit: `npm run qunit-node`
+  - tape:  `npm run tape`
++ browser examples (using live-server):
+  - mocha & chai: `npm run mocha`
+  - qunit:  `npm run unit`
+  
 ## Prior art
 
 [where.js](https://github.com/dfkaye/where.js) tests are modeled on [Spock's `where:` block](http://spockframework.org/spock/docs/1.0/data_driven_testing.html) and [Cucumber's scenario outline `Examples:` block](https://javapointers.com/automation/cucumber/cucumber-scenario-outline-example/), using these embedded in a three-asterisk comment syntax parsed from inside a function.
@@ -227,26 +235,31 @@ tape('suite', function(test) {
 
 ## To do
 
-+ done better error messaging
-+ done more `parse()` assertions (comments, commented rows)
-+ done convert "Number.RESERVED_CONSTANT" to Number.RESERVED_CONSTANT
-+ done convert Objects and Arrays -- uses `Function("return (" + value +");").call()`
++ **done** better error messaging
++ **done** more `parse()` assertions (comments, commented rows)
++ **done** convert "Number.RESERVED_CONSTANT" to Number.RESERVED_CONSTANT
++ **done** convert Objects and Arrays -- uses `Function("return (" + value +");").call()`
   - merge a and b to get c:
   - { name: 'test' } | { value: 'added' } | { name: 'test', value: 'added' }
   - concat a and b to get c:
   - ['a'] | ['b'] | [ 'a', 'b' ]
-+ done scenario.params as an enum, e.g., { a: 1, b: 2, c: 3 }
-+ done: try the docstring function that contains a where: label (see below)
++ **done** scenario.params as an enum, e.g., { a: 1, b: 2, c: 3 }
++ **done** try the docstring function that contains a where: label (see below)
 + **done** test suite for refactored wheredoc
 
++ **RECONSIDER** support for Objects and Arrays, *because* of `eval/Function`
+  - may need json normalize to make writing easier,
+  - OR require valid JSON and run JSON.parse(json).
+
 + create nodejs usage examples
-  - mocha TDD
+  - **SIMPLIFY** mocha TDD
   - **done** qunit - https://qunitjs.com/intro/#in-node
   - **done** tape
 + create browser usage examples (using [live-server](https://github.com/tapio/live-server))
   - **done** mocha BDD
-  - qunit
-+ verifying DOM structure, element presence, attributes
+  - **done** qunit 
++ **done** verifying DOM structure, element presence, attributes
+
 + support localized currency, number formats
   - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat
 
