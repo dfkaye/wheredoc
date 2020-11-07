@@ -1,6 +1,6 @@
 # wheredoc
 
-Use docstring-like data tables in JavaScript tests, similar to Cucumber `scenario outline` examples or Spock `where` blocks.
+Use docstring-like data tables in JavaScript tests, similar to Cucumber's Scenario Outline `Examples:` or Spock `where:` blocks.
 
 Status:
 + Docs incomplete.
@@ -45,7 +45,9 @@ Progress:
   
 ## Prior art
 
-[where.js](https://github.com/dfkaye/where.js) tests are modeled on [Spock's `where:` block](http://spockframework.org/spock/docs/1.0/data_driven_testing.html) and [Cucumber's scenario outline `Examples:` block](https://javapointers.com/automation/cucumber/cucumber-scenario-outline-example/), using these embedded in a three-asterisk comment syntax parsed from inside a function.
+[where.js](https://github.com/dfkaye/where.js) tests are modeled on [Spock's `where:` block](http://spockframework.org/spock/docs/1.0/data_driven_testing.html) and [Cucumber's Scenario Outline `Examples:` block](https://javapointers.com/automation/cucumber/cucumber-scenario-outline-example/), using these embedded in a three-asterisk comment syntax parsed from inside a function.
+
+Aside: for more on blocks in Cucumber, read about the [difference between Cucumber's examples and data blocks](https://medium.com/@priyank.it/cucumber-difference-between-examples-table-data-table-21501f2becbd).
 
 ```js
 it('description', function () {
@@ -63,7 +65,7 @@ it('description', function () {
 });
 ```
 
-We took that approach because at the time (2014) JavaScript did not support multi-line strings as neatly as a function comment, and the template literal syntax was not yet implemented.
+We took that approach because at the time (2014) JavaScript did not support multi-line strings as neatly as a function comment (or so I thought), and the template literal syntax was not yet implemented.
 
 The goal of that [heredoc](https://en.wikipedia.org/wiki/Here_document) style was to make data-driven tests easy to read and write.
 
@@ -147,30 +149,6 @@ describe('bdd', (done) => {
     var { a, b, c } = scenario.params
 
     it(`with ${a} and ${b}, should get ${c}`, scenario.test)
-  });
-
-  done();
-});
-```
-
-### Mocha TDD UI
-
-```
-suite('tdd', (done) => {
-  function spec() {
-    expect(c).to.equal(a + b)
-
-    where: `
-    a | b | c
-    1 | 2 | 3
-    "h" | 'b' | "one, 'please'" // should fail
-    `;
-  }
-
-  where(spec).forEach(scenario => {
-    var { a, b, c } = scenario.params
-
-    test(`with ${a} and ${b}, should get ${c}`, scenario.test)
   });
 
   done();
