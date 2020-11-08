@@ -591,13 +591,19 @@ describe("wheredoc", () => {
           // - keys don't start with A-z, $, _, and/or contain whitespace
 
           var { test } = ok;
-          var keys = ["9", "#", "%", "\"quoted\"", /*empty string*/ "", "a b", "ok", "$ok", "_ok"]
+          var bad = [
+            "9", "#", "%", "\"quoted\"", /*empty string*/ "", "a b", "a-b", "a+b"
+          ]
+          var good = [
+            "ok", "$ok", "_ok", "ok9"
+          ]
+          var keys = bad.concat(good);
           var rows = [
             ["will", "not", "process", "this", "row", "either"]
           ];
 
           var corrections = where.doc.analyze({ keys, rows, test })
-          expect(corrections.length).to.equal(6)
+          expect(corrections.length).to.equal(bad.length)
 
           corrections.forEach((correction, index) => {
             var { error } = correction;

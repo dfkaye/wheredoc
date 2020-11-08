@@ -171,7 +171,7 @@ function analyze({ keys, rows, test }) {
 
   // keys don't start wih A-z, $, _, and/or contains whitespace.
   keys.forEach(label => {
-    if (!/^[A-z\$\_]([^\s])*$/.test(label)) {
+    if (!/^[A-z\$\_]([A-z\$\_\d])*$/i.test(label)) {
       errors.push(`Invalid key, ${label}, expected to start with A-z, $, or _ (Key, key, $key, _Key).`)
     }
   })
