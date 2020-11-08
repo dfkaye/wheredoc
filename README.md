@@ -86,17 +86,16 @@ And ease of maintenance is one of the points of test-driven development.
 ```js
 it('description', function () {
   where({
+		test: (a,b,c) => {
+			expect(a + b).to.equal(c);
+			expect(c - a).to.equal(b);
+    },
     doc: ` 
       a  |  b  |  c
       1  |  2  |  3
       4  |  3  |  7
       6  |  6  |  12
-    `,
-
-		test: (a,b,c) => {
-			expect(a + b).to.equal(c);
-			expect(c - a).to.equal(b);
-		}
+    `
   });
 });
 ```
@@ -106,17 +105,16 @@ The `doc` field can also be formatted as a multi-line string, using backslash no
 ```js
 it('description', function () {
   where({
+		test: (a,b,c) => {
+			expect(a + b).to.equal(c);
+			expect(c - a).to.equal(b);
+    },
     doc: "\
       a  |  b  |  c		\
       1  |  2  |  3		\
       4  |  3  |  7		\
       6  |  6  |  12	\
-    ",
-
-		test: (a,b,c) => {
-			expect(a + b).to.equal(c);
-			expect(c - a).to.equal(b);
-		}
+    "
   });
 });
 ```

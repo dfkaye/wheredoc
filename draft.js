@@ -41,7 +41,7 @@ export function where(spec) {
     //  where: /* ... */; <-- block comments
     //  where: " ... \ ... "; <-- multiline strings using \ to separate lines
     //  where: () => { .... }; <-- an inner function containing a docstring.
-    var reWheredoc = /(?:where[^\n]*[\n])(([^\|]*\|)+[^\n]*[\n])/;
+    var reWheredoc = /(?:where\:[^\n]*[\n])(([^\|]*\|)+[^\n]*[\n])/;
     var match = spec.toString().match(reWheredoc);
 
     // When match fails to match, it returns null. We check that match exists

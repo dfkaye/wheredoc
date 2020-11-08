@@ -36,7 +36,7 @@ describe("wheredoc", () => {
   describe("where()", () => {
     describe("returns array of scenarios with params and test properties", () => {
       describe("given a spec function with where: table", () => {
-        var spec = (a, b, c) => {
+        function spec(a, b, c) {
           expect(c).to.equal(a + b)
 
           where: `
@@ -56,7 +56,7 @@ describe("wheredoc", () => {
         })
 
         describe("where: block table contains external table borders (| separators)", () => {
-          var spec = (a, b, c) => {
+          function spec(a, b, c) {
             expect(c).to.equal(a + b)
 
             where: `
@@ -124,7 +124,7 @@ describe("wheredoc", () => {
         it("processes the spec function, ignores doc and test properties", () => {
           var status = "unset"
 
-          var spec = function (a, b, c) {
+          function spec(a, b, c) {
             expect(c).to.equal(a + b)
 
             status = "set by spec"
@@ -170,7 +170,7 @@ describe("wheredoc", () => {
       //  where: " ... \n\ ... ";
       //  where: () => {/* .... */};
       it("accepts template literal", () => {
-        var spec = function () {
+        function spec() {
           where: `
           a | b | c
           2 | 5 | 7
@@ -185,7 +185,7 @@ describe("wheredoc", () => {
       })
 
       it("accepts multiline comment", () => {
-        var spec = function () {
+        function spec() {
           where: /*
           a | b | c
           6 | 9 | 15
@@ -201,7 +201,7 @@ describe("wheredoc", () => {
       })
 
       it("accepts multiline string", () => {
-        var spec = function () {
+        function spec() {
           where: "     \
             a | b | c  \
             3 | 8 | 11 \
@@ -218,7 +218,7 @@ describe("wheredoc", () => {
       })
 
       it("accepts a nested function with block in comments", () => {
-        var spec = function () {
+        function spec() {
           where: () => {/*
               a | b | c
               12 | -18 | -6
