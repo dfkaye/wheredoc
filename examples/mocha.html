@@ -7,16 +7,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <!-- content security policy for demo purposes -->
-  <!--
-    Can't run mocha 8 with strict CSP because of dependency on the incompetent
-    Facebook's Regenerator runtime.js (oo oo, generators) which uses Function("return this")()
-    on line 726, making mocha browser tests incompatible with strict content
-    security policy. Translation: have to use 'unsafe-eval' in script-src, script-src-elem.
-  -->
   <meta http-equiv="Content-Security-Policy" content="base-uri 'none';
     object-src 'none';
-    script-src 'self' 'unsafe-eval' 'strict-dynamic' 'nonce-4AEemGb0xJptoIGFP3Nd' https://unpkg.com;
-    script-src-elem 'self' 'unsafe-eval' 'strict-dynamic' 'nonce-4AEemGb0xJptoIGFP3Nd' https://unpkg.com;
+    script-src 'self' 'strict-dynamic' 'nonce-4AEemGb0xJptoIGFP3Nd' https://unpkg.com;
+    script-src-elem 'self' 'strict-dynamic' 'nonce-4AEemGb0xJptoIGFP3Nd' https://unpkg.com;
     style-src 'self' 'nonce-4AEemGb0xJptoIGFP3Nd' https://unpkg.com;
     style-src-elem 'self' 'nonce-4AEemGb0xJptoIGFP3Nd' https://unpkg.com;">
 
@@ -36,9 +30,17 @@
     <ul fixture-list></ul>
   </article>
 
+  <!--
+    Can't run mocha 8 with strict CSP because of dependency on the incompetent
+    Facebook's Regenerator runtime.js (oo oo, async-to-generators) which uses
+    Function("return this")() on line 726, making browser tests incompatible
+    with strict CSP.
+    
+    Otherwise, we have to use 'unsafe-eval' in script-src, script-src-elem.
+  -->
   <script nonce="4AEemGb0xJptoIGFP3Nd" type="module">
+    import "https://unpkg.com/mocha@7.0.1/mocha.js"
     import "https://unpkg.com/chai@4.2.0/chai.js"
-    import "https://unpkg.com/mocha@8.2.1/mocha.js"
     import { where } from '../draft.js';
 
     mocha.setup('bdd')
