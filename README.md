@@ -3,9 +3,7 @@
 Use docstring-like data tables in JavaScript tests, similar to Cucumber's Scenario Outline `Examples:` or Spock `where:` blocks.
 
 Status:
-+ Docs incomplete.
-+ Test cases incomplete.
-+ Squatting name to replace and deprecate where.js. 
++ Docs incomplete AND inaccurate.
 
 Progress:
 - *started: 2 Oct 2020*
@@ -32,26 +30,25 @@ Progress:
 - *Nov 6: added examples for mocha browser and qunit browser suites.; re-considering Function() support in the evaluate() method due to strict CSP.*
 - *Nov 7: reverted convert() to use JSON.parse() on object/array strings, allowing strict no-eval CSP in QUnit tests; mocha browser tests still requires unsafe-eval due to regenerator-runtime.js dependency. *
 - *Nov 8: point mocha.html to mocha 7.0.1, removes runtime.js dependency and eval/Function() error in strict CSP.*
+- Nov 11: rename draft as where; move old where and mocha to legacy; add mocha example; move live-server-fix to exxamples; version 0.0.4.
 
 ## Run tests
 
 + main suite: `npm test`
 + node examples:
-  - mocha & chai: `npm run mocha-node`
-  - qunit: `npm run qunit-node`
+  - mocha (using chai): `npm run mocha-node`
+  - qunit (using qunit-tap): `npm run qunit-node`
   - tape:  `npm run tape`
-+ browser examples (using live-server):
-  - mocha & chai: `npm run mocha`
++ browser examples (using live-server and unpkg.com):
+  - mocha (using chai): `npm run mocha`
   - qunit:  `npm run unit`
   
 ## Prior art
 
 [where.js](https://github.com/dfkaye/where.js) tests are modeled on [Spock's `where:` block](http://spockframework.org/spock/docs/1.0/data_driven_testing.html) and [Cucumber's Scenario Outline `Examples:` block](https://javapointers.com/automation/cucumber/cucumber-scenario-outline-example/), using these embedded in a three-asterisk comment syntax parsed from inside a function.
 
-Aside: for more on blocks in Cucumber, read about the [difference between Cucumber's examples and data blocks](https://medium.com/@priyank.it/cucumber-difference-between-examples-table-data-table-21501f2becbd).
-
 ```js
-it('description', function () {
+it('test name...', function () {
   where(function(){
     /*** 
       a  |  b  |  c
@@ -59,33 +56,31 @@ it('description', function () {
       4  |  3  |  7
       6  |  6  |  12
     ***/
-		
-		expect(a + b).to.equal(c);
-		expect(c - a).to.equal(b);
+
+    expect(a + b).to.equal(c);
+    expect(c - a).to.equal(b);
   });
 });
 ```
+
+Aside: for more on blocks in Cucumber, read about the [difference between Cucumber's examples and data blocks](https://medium.com/@priyank.it/cucumber-difference-between-examples-table-data-table-21501f2becbd).
 
 We took that approach because at the time (2014) JavaScript did not support multi-line strings as neatly as a function comment (or so I thought), and the template literal syntax was not yet implemented.
 
 The goal of that [heredoc](https://en.wikipedia.org/wiki/Here_document) style was to make data-driven tests easy to read and write.
 
-As "cool" as it felt to write at the time, in between states of stress and exhaustion, I now think that kind of cleverness costs too much to maintain.
+The stretch goal was to customize the test reports to match the output of the different testing libraries. As "cool" as it felt to write at the time, in between states of stress and exhaustion, I now think that kind of cleverness costs too much to maintain.
 
 And ease of maintenance is one of the points of test-driven development.
 
-(Update 28 Oct 2020: Incorrect. The maintenance problem arose due to "where" the where function is called. Once that is corrected in the new design, then the logic for error messaging, strategies, etc., is drastically simplified.)
-
 ## Simplifying
 
-*Need to update this: it is now false*
+The maintenance problem arose due to "where" the `where` function is called. Once that is corrected in the new design, then the logic for error messaging, strategies, etc., is drastically simplified.
 
 [wheredoc](https://github.com/dfkaye/wheredoc) supports a simpler setup to reduce the cleverness, using a test specifier with a `doc` field pointing to a template literal string instead of a special comment syntax, and a `test` field pointing to a function containing the assertions.
 
-`where: \`...\`;`
-
 ```js
-it('description', function () {
+
   where({
 		test: (a,b,c) => {
 			expect(a + b).to.equal(c);
@@ -98,13 +93,13 @@ it('description', function () {
       6  |  6  |  12
     `
   });
-});
+
 ```
 
 The `doc` field can also be formatted as a multi-line string, using backslash notation (`\`) at the end of each line.
 
 ```js
-it('description', function () {
+
   where({
 		test: (a,b,c) => {
 			expect(a + b).to.equal(c);
@@ -117,14 +112,14 @@ it('description', function () {
       6  |  6  |  12	\
     "
   });
-});
+
 ```
 
 ## Decoupling
 
 [wheredoc](https://github.com/dfkaye/wheredoc) no longer supports the notions of [log](https://github.com/dfkaye/where.js#log) or [intercept](https://github.com/dfkaye/where.js#intercept). These were added to where.js for the sake of identifying individual rows within a table where the expectation fails and printing (pass) or (fail) next to them in the test results.
 
-Now, instead of the `where` clause appearing inside of `it` or `test` statements, `where` generates row data and returns an array. You then call `map` or `forEach` on that array, accepting a function param in your iterator, and then calling that function which in turn runs your `test` function containing the assertions.
+Now, instead of the `where` clause appearing inside of `it` or `test` statements, `where` processes the docstring and returns an array of test scenarios. You then call `map` or `forEach` on that array, and call `scenario.test()` - or pass it to `it` if you're using mocha-jasmine style `describe` functions which in turn calls your `scenario.test` function containing the assertions.
 
 That approach de-couples the `where` clause from the mechanics of the test framework. There is no more need of defining a framework-specific [strategy](https://github.com/dfkaye/where.js#strategy).
 
@@ -133,7 +128,7 @@ That approach de-couples the `where` clause from the mechanics of the test frame
 ### Mocha BDD UI
 
 ```
-describe('bdd', (done) => {
+describe('mocha + chai', (done) => {
   function spec() {
     expect(c).to.equal(a + b)
 
@@ -146,6 +141,12 @@ describe('bdd', (done) => {
 
   where(spec).forEach(scenario => {
     var { a, b, c } = scenario.params
+
+    /*
+     * mocha requires the it() function to run all scenarios;
+     * otherwise, it reports nothing for passing assertions,
+     * and halts on the first failing assertion.
+     */
 
     it(`with ${a} and ${b}, should get ${c}`, scenario.test)
   });
@@ -176,6 +177,11 @@ describe("wheredoc", hooks => {
     }
 
     where(spec).forEach((scenario, i) => {
+
+      /*
+       * You can call the test function directly in QUnit.
+       */
+
       scenario.test();
     });
 
@@ -204,6 +210,11 @@ tape('suite', function(test) {
   }
 
   where(spec).forEach(scenario => {
+
+    /*
+     * You can call the test function directly in tape.
+     */
+
     scenario.test()
   });
 
@@ -230,20 +241,15 @@ tape('suite', function(test) {
   - **yes** OR require valid JSON and run JSON.parse(json).
 
 + create nodejs usage examples
-  - **SIMPLIFY** mocha TDD
-  - **done** qunit - https://qunitjs.com/intro/#in-node
+  - **done** mocha + chai
+  - **done** qunit + qunit-tap - https://qunitjs.com/intro/#in-node
   - **done** tape
 + create browser usage examples (using [live-server](https://github.com/tapio/live-server))
-  - **done** mocha BDD
+  - **done** mocha + chai
   - **done** qunit 
-+ **done** verifying DOM structure, element presence, attributes
+  + **done** DOM interactions, element queries, attributes
 
-+ support localized currency, number formats
-  - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat
-
-+ (not covered: jest, jasmine, ava, riteway, cypress)
-
-+ Docs
++ Docs ***in progress***
   + Shorten the README
   + Move longer narrative to dfkaye.com blog.
 + create Docs folder
