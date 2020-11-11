@@ -32,7 +32,7 @@ let describe = require("tape-describe")
 // let { where } = await import('./where.js')
 
 // or just use import { ... }
-import { where } from '../draft.js';
+import { where } from '../where.js';
 
 tape('tape passing example', function (test) {
   function spec(a, b, c) {

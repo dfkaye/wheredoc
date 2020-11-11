@@ -39,10 +39,10 @@ tap.config.showSourceOnFailure = 0; // this turns off the noisy stack trace
  *  - use top-level await import(module_filepath)
  *  - use destructuring assignment in one step, not after.
  */
-// let { where } = await import('../draft.js')
+// let { where } = await import('../where.js')
 
 // or just use import { ... }
-import { where } from '../draft.js';
+import { where } from '../where.js';
 
 let { module: describe, test: it } = QUnit
 

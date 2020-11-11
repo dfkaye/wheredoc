@@ -30,7 +30,7 @@ let { assert, expect } = chai;
 // let { where } = await import('./where.js')
 
 // or just use import { ... }
-import { where } from './draft.js';
+import { where } from './where.js';
 
 describe("wheredoc", () => {
   describe("where()", () => {
@@ -340,10 +340,10 @@ describe("wheredoc", () => {
           var spec = {
             test: "should be a function",
             doc: `
-                a | b | c
-                0 | 0 | 0
-                1 | 2 | 3
-              `
+              a | b | c
+              0 | 0 | 0
+              1 | 2 | 3
+            `
           };
 
           var corrections = where.doc.factory(spec)
@@ -412,14 +412,32 @@ describe("wheredoc", () => {
         expect(tokens).to.deep.equal(["2", "3", "5"])
       })
 
-      it("removes line comments, ", () => {
+      it("removes empty rows, ", () => {
         var doc = `
         a | b | c
 
         1 | 2 | 3
-     // 4 | 5 | 6 (shouldn't see this line)
+        4 | 5 | 6
         7 | 8 | 9
 
+        `;
+
+        var { keys, rows } = where.doc.parse({ doc })
+
+        expect(keys).to.deep.equal(["a", "b", "c"])
+        expect(rows).to.deep.equal([
+          ["1", "2", "3"],
+          ["4", "5", "6"],
+          ["7", "8", "9"]
+        ])
+      })
+
+      it("removes line comments, ", () => {
+        var doc = `
+        a | b | c
+        1 | 2 | 3
+     // 4 | 5 | 6 (should remove this line)
+        7 | 8 | 9 // should remove this comment
         `;
 
         var { keys, rows } = where.doc.parse({ doc })
@@ -453,7 +471,8 @@ describe("wheredoc", () => {
 
       it("returns empty rows array if spec doc has no rows.", () => {
         var doc = `
-        should | see | these
+          should | see | these
+        //   but | not | these
         `;
 
         var { keys, rows } = where.doc.parse({ doc })
@@ -462,7 +481,7 @@ describe("wheredoc", () => {
         expect(rows).to.deep.equal([])
       })
 
-      it("returns empty keys and rows arrays if spec doc has neither keys nor rows.", () => {
+      it("returns empty keys and rows arrays if spec doc has no keys or rows.", () => {
         var doc = `
       
         `;

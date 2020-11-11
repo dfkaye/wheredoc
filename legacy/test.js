@@ -1,3 +1,11 @@
+/**
+ * Legacy test suite for driving initial design.
+ * 
+ *    Do not use this brain.
+ * 
+ */
+
+
 /*
  * This suite is run with mocha and uses chai expect.
  * Run this suite from wheredoc root using:
@@ -27,7 +35,7 @@ const { assert, expect } = chai;
  *  - use top-level await import(module_filepath)
  *  - use destructuring assignment in one step, not after.
  */
-var { spec, where, parse, build, convert } = await import('../../where.js')
+var { spec, where, parse, build, convert } = await import('./where.js')
 
 // or just use import { ... }
 // import { where, parse, build, convert } from '../../where.js';

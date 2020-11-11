@@ -1,235 +1,266 @@
-/**
- * @author david f. kaye 
- * @name where.js
- * @license MIT
- */
+/*
+  draft of API refactoring
 
-export { spec, where, parse, build, convert }
+  import { where } from "wheredoc";
 
-function spec(test) {
-  // About /(?:where[^\n]*[\n])(([^\|]*\|)+[^\n]*[\n])/
-  // That RegExp extracts each row of the data table after the where label (non capture),
-  // containing at least one | and newline, and supports multiple formats, starting
-  // with a `where:` label inside the doc test function:
+  describe("...", () => {
+    where((a, b, c) => {
+      where: `
+      a  |  b  |  c
+      1  |  2  |  3
+      4  |  5  |  9
+      'a' | 'b' | 'ab'
+      `;
 
-  //  where: ` ... `;
-  //  where: /* ... */; <-- requires trailing semi-colon if no other statements follow>
-  //  where: " ... \n\ ... ";
-  //  where: () => { .... };
-  var reWheredoc = /(?:where[^\n]*[\n])(([^\|]*\|)+[^\n]*[\n])/;
+      expect(c).to.equal(a + b)
+    }).forEach(scenario => {
+      var { params: p, test } = scenario
 
-  var match = Object(test).toString().match(reWheredoc);
+      it(`with ${p.a} and ${p.b}, should get ${p.c}`, test)
+    })
+  })
 
-  // When match fails to match, it returns null. We check that match exists
-  // and that its second entry which excludes the non-captured group also
-  // exists; if it does, then match[1] is assigned; otherwise fall back to the
-  // empty string.
-  var doc = match && match[1] || "";
+  // API underneath
+  where.doc.factory
+    where.doc.parse
+    where.doc.analyze
+    where.doc.scenario
+      where.doc.convert
+      where.doc.map
+*/
 
-  return where({ doc, test })
+export function where(spec) {
+  var { doc, test } = Object(spec);
+
+  if (typeof spec == 'function') {
+    // About /(?:where[^\n]*[\n])(([^\|]*\|)+[^\n]*[\n])/
+    // That RegExp examines each row of the data table, extracting characters,
+    // spaces, pipes (|) and newline. Starting with a `where:` label inside the
+    // doc test function, it supports multiple formats for docstrings:
+    //  where: ` ... `; <-- backticks for template literals
+    //  where: /* ... */; <-- block comments
+    //  where: " ... \ ... "; <-- multiline strings using \ to separate lines
+    //  where: () => { .... }; <-- an inner function containing a docstring.
+    var reWheredoc = /(?:where\:[^\n]*[\n])(([^\|]*\|)+[^\n]*[\n])/;
+    var match = spec.toString().match(reWheredoc);
+
+    // When match fails to match, it returns null. We check that match exists
+    // and that its second entry which excludes the non-captured group also
+    // exists; if it does, then match[1] is assigned; otherwise fall back to the
+    // empty string.
+    doc = match && match[1] || "";
+    test = spec;
+  }
+
+  return factory({ doc, test });
 }
 
-function where({ doc, test }) {
-  var data = parse({ doc });
-
-  return build({ data, test });
+where.doc = {
+  factory, parse, analyze, scenario, convert, map
 }
 
+// scenarios
+function factory({ doc, test }) {
+  var { keys, rows } = parse({ doc });
+
+  // 1. analyze spec parts for corrections to be made.
+  // Return them if any are found.
+  // - test not a function
+  // - no data rows
+  // - no keys
+  // - duplicate keys
+  // - keys don't start with a-z, $, _, and/or contain whitespace
+  var corrections = analyze({ keys, rows, test });
+
+  if (corrections.length) {
+    return corrections
+  }
+
+  // return scenarios
+  return rows.map((tokens, index) => {
+    return scenario({ keys, tokens, index, test })
+  })
+}
+
+// parse doc as docstring or function containing docstring.
 function parse({ doc }) {
-  // parse doc as docstring or function containing docstring.
-  var lines = Object(doc).toString()
-    .trim()
-    .replace(/\/\/[^\n]*/g, '') // remove comments...
-    .split('\n'); // and split by newline
+  // Ensure that doc is a string.
+  if (doc !== Object(doc).toString()) {
+    doc = ""
+  }
+
+  var lines = doc.trim()
+    // remove line comments.
+    .replace(/\/\/[^\n]*/g, '')
+    // split into lines.
+    .split("\n");
 
   var rows = [];
 
   // process lines
   // trim
   // return or split on |
-  lines.forEach(line => {
-    var values = line.trim();
+  lines.forEach(text => {
+    var line = text.trim()
+      // Supports \ terminated lines in old fashioned multiline strings.
+      .replace(/\\$/, "");
 
-    // remove external fence posts (| separators)
+    // Remove external table borders (| separators).
     // before: | a | b | c |
     // after:  a | b | c
-    if (/^\|(.)*\|$/.test(values)) {
-      values = values.substring(1, values.length - 1).trim()
+    if (/^\|(.)*\|$/.test(line)) {
+      line = line.substring(1, line.length - 1).trim()
     }
 
-    if (values.length == 0) {
+    if (line.length == 0) {
       // Skip empty line.
       return
     }
 
-    var row = [];
+    var tokens = [];
 
-    values.split('|').forEach(value => {
-      row.push(String(value).trim());
+    line.split('|').forEach(token => {
+      tokens.push(String(token).trim());
     })
 
-    rows.push(row);
+    rows.push(tokens);
   });
 
   return {
-    params: rows[0] || [], // creates an empty array if data has no params
-    rows: rows.slice(1) // creates an empty array if data has no rows.
+    // Assign an empty array if data has no keys.
+    keys: rows[0] || [],
+    // Create an empty array if data has no rows.
+    rows: rows.slice(1)
   }
 }
 
-function build({ data, test }) {
-  var { params, rows } = data;
-  var scenarios = [];
-  var errors = [];
+// return list of outline corrections to be made
+function analyze({ keys, rows, test }) {
+  var errors = []
 
-  // test is a function
+  // test is not a function
   if (typeof test != "function") {
-    errors.push(`"test" expected to be a function but was "${typeof test}"`)
+    var type = {}.toString.call(test).slice(8, -1)
+    errors.push(`Expected test to be a Function but was ${type}.`)
   }
 
-  // at least one row
+  // no data rows
   if (!rows.length) {
-    errors.push(`No values defined for [${params.join(', ')}]`)
+    errors.push(`No data rows defined for keys, [${keys.join(', ')}].`)
   }
 
-  // unique params
-  if (params.length > new Set(params).size) {
+  // no keys
+  if (!keys.length) {
+    errors.push(`No keys defined.`)
+  }
+
+  // duplicate keys
+  if (keys.length > new Set(keys).size) {
     var visited = {};
     var dupes = {};
 
-    params.forEach(p => {
-      if (p in visited && !(p in dupes)) {
-        dupes[p] = p
+    keys.forEach(key => {
+      if (key in visited && !(key in dupes)) {
+        dupes[key] = key
       }
-      visited[p] = p
+      visited[key] = key
     })
 
-    errors.push(`Duplicate param names: [${Object.keys(dupes).join(', ')}]`)
+    errors.push(`Duplicate keys: [${Object.keys(dupes).join(', ')}].`)
   }
 
-  // params must start with A-z, $, or _, and contain no whitespace
-  params.forEach(param => {
-    if (!/^[A-z\$\_]([^\s])*$/.test(param)) {
-      errors.push(`Param "${param}" expected to start with A-z, $, or _ (X, x, $x, _x)`)
+  // keys don't start wih A-z, $, _, and/or contains whitespace.
+  keys.forEach(label => {
+    if (!/^[A-z\$\_]([A-z\$\_\d])*$/i.test(label)) {
+      errors.push(`Invalid key, ${label}, expected to start with A-z, $, or _ (Key, key, $key, _Key).`)
     }
   })
 
-  // Return early if any errors, with one scenario that throws all messages.
-  if (errors.length) {
-    var error = errors.join('\n');
-    var apply = function () { throw new Error(error) }
+  return errors.map(error => {
+    var test = function () { throw new Error(error) }
 
-    return {
-      scenarios: [{
-        params,
-        values: rows,
-        apply,
-        error
-      }],
-      errors
-    }
-  }
-
-  // row-level
-  rows.forEach((values, i) => {
-    // - value count equals params length
-    //    (should find unbalanced row)
-    if (values.length != params.length) {
-      var error = [
-        `Row ${i + 1}, expected ${params.length} values but found ${values.length}.`,
-        `params: [${params.join(', ')}]`,
-        `values: [${values.join(', ')}]`
-      ].join('\n');
-
-      var apply = function () {
-        throw new Error(error)
-      }
-
-      scenarios.push({ params, values, apply, error });
-      errors.push(error);
-
-      return;
-    }
-
-    // Create scenario { params, apply } for each row.
-
-    // - convert values
-    //   done ("null" to null, "undefined" to undefined, "true" ot true, "false" to false)
-    //   done  (convert numeric string to Number)
-    //   done  (handle Math.RESERVED_CONSTANTS)
-    //   done  (handle Number.RESERVED_CONSTANTS)
-    //   done (handle Object, Array)
-    //   done (change the way params are returned for each row)
-
-    values = convert({ values });
-
-    // create params enum
-    // params = map({ params, values })
-
-    // - create row value test invoker
-    var apply = function () {
-      return test.apply(null, values)
-    }
-
-    scenarios.push({
-      // create params enum
-      params: map({ params, values }),
-      apply
-    });
+    return { keys, rows, error, test }
   })
-
-  return { scenarios, errors };
 }
 
-function convert({ values }) {
-  return values.map(value => {
-    if (/^(false|true)$/.test(value)) {
+// returns a test-scenario { params, test }
+// or an error-scenario { keys, tokens, error, test }
+function scenario({ keys, tokens, index, test }) {
+  var errors = []
+
+  // unbalanced keys.length != tokens.length
+  if (keys.length != tokens.length) {
+    var message = [
+      `Row ${index + 1}`,
+      `expected ${keys.length} tokens`,
+      `but found ${tokens.length}.`
+    ].join(', ');
+
+    errors.push(message);
+  }
+
+  if (errors.length) {
+    var error = errors.join("\n")
+    var test = function () { throw new Error(error) }
+
+    return { keys, tokens, error, test };
+  }
+
+  var values = convert({ tokens })
+
+  return {
+    params: map({ keys, values }),
+    test: function () { return test.apply(null, values) }
+  };
+}
+
+// return convert tokens to real values:
+// false, true, null, undefined, numbers, NaN, Math and Number constants,
+// object and array literals.
+// functions not supported
+// quoted strings returned as is.
+function convert({ tokens }) {
+  return tokens.map(token => {
+    if (/^(false|true)$/.test(token)) {
       // Gist: https://gist.github.com/dfkaye/ce346446dee243173cd199e51b0c51ac
-      // return (true).toString() === value;
-
-      return evaluate({ value })
+      return (true).toString() === token;
     }
 
-    if (/^(null|undefined)$/.test(value)) {
-      // return value === "null" ? null : undefined;
-
-      return evaluate({ value })
+    if (/^(null|undefined)$/.test(token)) {
+      return token === "null"
+        ? null
+        : undefined;
     }
 
-    if (/^NaN$/.test(value)) {
+    if (/^NaN$/.test(token)) {
       return NaN;
     }
 
-    if (/^[-]?Infinity$/.test(value)) {
-      /*
+    if (/^[-]?Infinity$/.test(token)) {
       return (
-        value < 0
+        token < 0
           ? -Infinity
           : Infinity
       );
-      */
-      return evaluate({ value })
     }
 
-    if (/^Number.[A-Z]+/.test(value)) {
+    if (/^Number.[A-Z]+/.test(token)) {
       // Number.NEGATIVE_INFINITY
-      // var field = value.split(".")[1];
-      // return Number[field];
+      var field = token.split(".")[1];
 
-      return evaluate({ value })
+      return Number[field];
     }
 
-    if (/^Math.[A-Z]+/.test(value)) {
+    if (/^Math.[A-Z]+/.test(token)) {
       // Math.PI
-      //var field = value.split(".")[1];
-      // return Math[field];
+      var field = token.split(".")[1];
 
-      return evaluate({ value })
+      return Math[field];
     }
 
-    if (/\d+/g.test(value) && !/[\'|\"]/g.test(value)) {
-      // contains a numeral: .1, +1, -1, 1e1
-      var string = value.replace(/\,/g, "");
+    if (/\d+/g.test(token) && !/[\'|\"]/g.test(token)) {
+      // Possibly a number but not NaN if it contains a digit: .1, +1, -1, 1e1
+      var string = token.replace(/\,/g, "");
       var number = Number(string)
 
       // Use number if it's not NaN.
@@ -238,11 +269,13 @@ function convert({ values }) {
       }
     }
 
-    if (value[0] == "{" && value[value.length - 1] == "}"
-      || value[0] == "[" && value[value.length - 1] == "]") {
-      // Array or Object literal
+    // Test for JSON object or array literal
+    var first = token[0];
+    var last = token[token.length - 1];
+
+    if (first == "{" && last == "}" || first == "[" && last == "]") {
       try {
-        var object = evaluate({ value })
+        var object = JSON.parse(token)
 
         return object
       }
@@ -252,20 +285,18 @@ function convert({ values }) {
     }
 
     // Default case, edifyingly annotated.
-    return value;
+    return token;
   })
 }
 
-function evaluate({ value }) {
-  return Function("return (" + value + ");").apply(0)
-}
+// returns map of key-value entries { a: 1, b: 2 }
+function map({ keys, values }) {
+  var entries = {}
 
-function map({ params, values }) {
-  var map = {}
-
-  params.forEach((p, i) => {
-    map[p] = values[i]
+  keys.forEach((label, i) => {
+    entries[label] = values[i]
   })
 
-  return map
+  return entries
 }
+

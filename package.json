@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "node node_modules/mocha/bin/mocha test.js",
-    "mocha-node": "node node_modules/mocha/bin/mocha examples/mocha/node-suite.js",
+    "mocha-node": "node node_modules/mocha/bin/mocha ./examples/mocha.js",
     "qunit-node": "node ./examples/qunit.js",
     "tape": "node ./examples/tape.js",
     "mocha": "live-server --port=9090 --open=examples/mocha.html",
