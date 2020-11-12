@@ -1,34 +1,18 @@
-/*
-  draft of API refactoring
+/**
+ * @author  David Kaye (dfkaye)
+ * @name  where.js
+ * @license MIT
+ */
 
-  import { where } from "wheredoc";
-
-  describe("...", () => {
-    where((a, b, c) => {
-      where: `
-      a  |  b  |  c
-      1  |  2  |  3
-      4  |  5  |  9
-      'a' | 'b' | 'ab'
-      `;
-
-      expect(c).to.equal(a + b)
-    }).forEach(scenario => {
-      var { params: p, test } = scenario
-
-      it(`with ${p.a} and ${p.b}, should get ${p.c}`, test)
-    })
-  })
-
-  // API underneath
-  where.doc.factory
-    where.doc.parse
-    where.doc.analyze
-    where.doc.scenario
-      where.doc.convert
-      where.doc.map
-*/
-
+/**
+ * @function where accepts either a function containing a docstring and
+ * expectations, or an object containing a doc string field and a test function
+ * field, and returns an array of scenarios containing a test function that
+ * when called executes the incoming test or throws a pre-defined error.
+ * 
+ * @param {function | { doc: string, test: function }} spec
+ * @returns {Array} scenarios 
+ */
 export function where(spec) {
   var { doc, test } = Object(spec);
 
@@ -55,39 +39,50 @@ export function where(spec) {
   return factory({ doc, test });
 }
 
+/**
+ * @namespace doc contains the internal API methods.
+ */
 where.doc = {
   factory, parse, analyze, scenario, convert, map
 }
 
-// scenarios
+/**
+ * @method factory accepts an object with doc string and test function fields,
+ * and returns an array of scenarios, or an array of corrections if any parsing
+ * errors are detected.
+ * 
+ * @param {{doc: string, test: function}} spec 
+ * @returns {Array} scenarios or corrections
+ */
 function factory({ doc, test }) {
   var { keys, rows } = parse({ doc });
 
-  // 1. analyze spec parts for corrections to be made.
-  // Return them if any are found.
-  // - test not a function
-  // - no data rows
-  // - no keys
-  // - duplicate keys
-  // - keys don't start with a-z, $, _, and/or contain whitespace
   var corrections = analyze({ keys, rows, test });
 
   if (corrections.length) {
     return corrections
   }
 
-  // return scenarios
   return rows.map((tokens, index) => {
     return scenario({ keys, tokens, index, test })
   })
 }
 
-// parse doc as docstring or function containing docstring.
+/**
+ * @method parse accepts a doc string field and returns an object with arrays
+ * of keys (field names) and rows (of data). This will parse doc either as a
+ * docstring or a function containing a docstring.
+ * 
+ * @param {{doc: string}} spec
+ * @returns {Array} 
+ */
 function parse({ doc }) {
   // Ensure that doc is a string.
   if (doc !== Object(doc).toString()) {
     doc = ""
   }
+
+  var rows = [];
 
   var lines = doc.trim()
     // remove line comments.
@@ -95,14 +90,11 @@ function parse({ doc }) {
     // split into lines.
     .split("\n");
 
-  var rows = [];
-
-  // process lines
-  // trim
-  // return or split on |
+  // process lines:
+  // return on empty or split on | and push to rows accumulator.
   lines.forEach(text => {
     var line = text.trim()
-      // Supports \ terminated lines in old fashioned multiline strings.
+      // Support `\` terminated lines in old fashioned multiline strings.
       .replace(/\\$/, "");
 
     // Remove external table borders (| separators).
@@ -134,7 +126,15 @@ function parse({ doc }) {
   }
 }
 
-// return list of outline corrections to be made
+/**
+ * @method analyze tests incoming keys, rows, and test params for correctness.
+ * Any errors detected are returned in a array containing a single "scenario"
+ * or correction with a test function that throws the outline corrections to be
+ * made.
+ * 
+ * @param {{ keys: Array, rows: Array, test: function }}
+ * @returns {Array} corrections
+ */
 function analyze({ keys, rows, test }) {
   var errors = []
 
@@ -185,6 +185,18 @@ function analyze({ keys, rows, test }) {
 
 // returns a test-scenario { params, test }
 // or an error-scenario { keys, tokens, error, test }
+/**
+ * @method scenario accepts an array of keys, an array of tokens (values in a
+ * given row of data), the index of the data row in the spec outline, and the
+ * test function, and generates either a test-scenario, or an error-scenario.
+ * A test-scenario contains a map of params (keys mapped to row values) and a
+ * test function that calls the incoming test function param. An error-scenario
+ * contains an error string and a test function that throw the error, plus the
+ * incoming keys and tokens params.
+ * 
+ * @param {{ keys: Array, tokens: Array, index: number, test: function }}
+ * @returns {Object} scenario
+ */
 function scenario({ keys, tokens, index, test }) {
   var errors = []
 
@@ -214,11 +226,23 @@ function scenario({ keys, tokens, index, test }) {
   };
 }
 
-// return convert tokens to real values:
-// false, true, null, undefined, numbers, NaN, Math and Number constants,
-// object and array literals.
-// functions not supported
-// quoted strings returned as is.
+/**
+ * @method convert accepts an array of tokens and attempts to convert them from
+ * strings to real values. These include:
+ * 
+ *  false, true
+ *  null, undefined
+ *  NaN, Infinity
+ *  Number and Math constants
+ *  possibly numeric values such as .1, +1, -1, 1e1
+ *  JSON object and array literals.
+ * 
+ * Quoted strings are returned unchanged.
+ * Functions are not supported. 
+ * 
+ * @param {{tokens: Array}} 
+ * @returns {Array} values 
+ */
 function convert({ tokens }) {
   return tokens.map(token => {
     if (/^(false|true)$/.test(token)) {
@@ -289,7 +313,13 @@ function convert({ tokens }) {
   })
 }
 
-// returns map of key-value entries { a: 1, b: 2 }
+/**
+ * @method map accepts arrays of keys and values and returns a an object that
+ * maps each key-value entry, e.g., { a: 1, b: 2 }.
+ * 
+ * @param {{keys: Array, values: Array}} pairs
+ * @returns {Object} entries
+ */
 function map({ keys, values }) {
   var entries = {}
 

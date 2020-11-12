@@ -3,7 +3,7 @@
 Use docstring-like data tables in JavaScript tests, similar to Cucumber's Scenario Outline `Examples:` or Spock `where:` blocks.
 
 Status:
-+ Docs incomplete AND inaccurate.
++ Docs are *in progress*.
 
 Progress:
 - *started: 2 Oct 2020*
@@ -30,7 +30,7 @@ Progress:
 - *Nov 6: added examples for mocha browser and qunit browser suites.; re-considering Function() support in the evaluate() method due to strict CSP.*
 - *Nov 7: reverted convert() to use JSON.parse() on object/array strings, allowing strict no-eval CSP in QUnit tests; mocha browser tests still requires unsafe-eval due to regenerator-runtime.js dependency. *
 - *Nov 8: point mocha.html to mocha 7.0.1, removes runtime.js dependency and eval/Function() error in strict CSP.*
-- Nov 11: rename draft as where; move old where and mocha to legacy; add mocha example; move live-server-fix to exxamples; version 0.0.4.
+- Nov 11: rename draft as where; move old where and mocha to legacy; add mocha example; move live-server-fix to examples; version 0.0.4; JSDoc added to where.js.
 
 ## Run tests
 
@@ -75,7 +75,7 @@ And ease of maintenance is one of the points of test-driven development.
 
 ## Simplifying
 
-The maintenance problem arose due to "where" the `where` function is called. Once that is corrected in the new design, then the logic for error messaging, strategies, etc., is drastically simplified.
+The maintenance problem arose due to "where" the `where` function is called. Once that is corrected in the new design, then the logic for error messaging, strategies, etc., is largely simplified.
 
 [wheredoc](https://github.com/dfkaye/wheredoc) supports a simpler setup to reduce the cleverness, using a test specifier with a `doc` field pointing to a template literal string instead of a special comment syntax, and a `test` field pointing to a function containing the assertions.
 
@@ -250,9 +250,10 @@ tape('suite', function(test) {
   + **done** DOM interactions, element queries, attributes
 
 + Docs ***in progress***
++ **done** JSDoc in where.js
   + Shorten the README
   + Move longer narrative to dfkaye.com blog.
-+ create Docs folder
++ **done** create Docs folder
   + how to run the tests
   + how to import ES6 modules into commonJS.
     - https://nodejs.org/api/esm.html#esm_interoperability_with_commonjs
@@ -278,6 +279,22 @@ function spec(a, b, c) {
 }
 ```
 
+```js
+// object specifier with doc and test fields
+var spec = {
+  test: function(a, b, c) {
+    expect(a + b).to.equal(c);
+    expect(c - a).to.equal(b);
+  },
+  doc: `
+    a  |  b  |  c
+    1  |  2  |  3
+    4  |  3  |  7
+    6  |  6  |  12
+  `
+}
+```
+
 `where` returns an array of scenarios, one for each data row, including its `params` map and a `test` function that you pass to your testing library's `it` or `test` functions. Here's a destructuring assignment example.
 
 ```js
@@ -291,11 +308,19 @@ where(spec).forEach(scenario => {
 If there's a name conflict with `test`, however, you can de-conflict by using an alias when destructuring the scenario, for example,
 
 ```js
-where(spec).scenarios.forEach(scenario => {
-  var { params: p, test: t } = scenario
+where(spec).scenarios.forEach({ params: p, test: t } => {
+  var { a, b, c } = p;
 
-  test(`with ${p.a} and ${p.b}, should get ${p.c}`, t)
+  test(`with ${a} and ${b}, should get ${c}`, t)
 });
 ```
 
 or reference `scenario.test`.
+
+```js
+where(spec).scenarios.forEach(scenario => {
+  var { a, b, c } = scenario.params;
+
+  test(`with ${a} and ${b}, should get ${c}`, scenario.test)
+});
+```
