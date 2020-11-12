@@ -80,39 +80,35 @@ The maintenance problem arose due to "where" the `where` function is called. Onc
 [wheredoc](https://github.com/dfkaye/wheredoc) supports a simpler setup to reduce the cleverness, using a test specifier with a `doc` field pointing to a template literal string instead of a special comment syntax, and a `test` field pointing to a function containing the assertions.
 
 ```js
-
-  where({
-		test: (a,b,c) => {
-			expect(a + b).to.equal(c);
-			expect(c - a).to.equal(b);
-    },
-    doc: ` 
-      a  |  b  |  c
-      1  |  2  |  3
-      4  |  3  |  7
-      6  |  6  |  12
-    `
-  });
-
+where({
+  test: (a,b,c) => {
+    expect(a + b).to.equal(c);
+    expect(c - a).to.equal(b);
+  },
+  doc: ` 
+    a  |  b  |  c
+    1  |  2  |  3
+    4  |  3  |  7
+    6  |  6  |  12
+  `
+});
 ```
 
 The `doc` field can also be formatted as a multi-line string, using backslash notation (`\`) at the end of each line.
 
 ```js
-
-  where({
-		test: (a,b,c) => {
-			expect(a + b).to.equal(c);
-			expect(c - a).to.equal(b);
-    },
-    doc: "\
-      a  |  b  |  c		\
-      1  |  2  |  3		\
-      4  |  3  |  7		\
-      6  |  6  |  12	\
-    "
-  });
-
+where({
+  test: (a,b,c) => {
+    expect(a + b).to.equal(c);
+    expect(c - a).to.equal(b);
+  },
+  doc: "\
+    a  |  b  |  c		\
+    1  |  2  |  3		\
+    4  |  3  |  7		\
+    6  |  6  |  12	\
+  "
+});
 ```
 
 ## Decoupling
@@ -127,7 +123,7 @@ That approach de-couples the `where` clause from the mechanics of the test frame
 
 ### Mocha BDD UI
 
-```
+```js
 describe('mocha + chai', (done) => {
   function spec() {
     expect(c).to.equal(a + b)
@@ -159,7 +155,7 @@ describe('mocha + chai', (done) => {
 
 Note: On node.js, we use qunit-tap to print the QUnit test results to the console.
 
-```
+```js
 let { module: describe, test: it } = QUnit
 
 describe("wheredoc", hooks => {
@@ -196,7 +192,7 @@ QUnit.start()
 
 ### tape
 
-```
+```js
 tape('suite', function(test) {
   function spec(a, b, c) {
 
