@@ -24,6 +24,10 @@ describe("username validation", function() {
 })
 ```
 
+See also [data-driven](https://github.com/fluentsoftware/data-driven), an extension for mocha.js from Fluent Software which is similar to JP's `using` function.
+
+## Goals
+
 I wanted to remove the need for the lengthy array argument, and took my next inspiration from [Spock's `where:` block](http://spockframework.org/spock/docs/1.0/data_driven_testing.html) and [Cucumber's Scenario Outline `Examples:` block](https://javapointers.com/automation/cucumber/cucumber-scenario-outline-example/), using these embedded in a three-asterisk comment syntax parsed from inside a function.
 
 ```js

@@ -28,6 +28,7 @@
     + Shorten the README
     + Move longer narrative to dfkaye.com blog.
   + **done** create Docs folder
+    + Values in docstrings *in progress*
     + **done** how to run the tests
     + **done** how to import ES6 modules into commonJS.
       - https://nodejs.org/api/esm.html#esm_interoperability_with_commonjs
