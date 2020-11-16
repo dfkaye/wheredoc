@@ -2,15 +2,6 @@
 
 Use docstring-like data tables in JavaScript tests, similar to Cucumber's Scenario Outline `Examples:` or Spock `where:` blocks.
 
-## Requirements
-
-ES2015 module support (i.e., JavaScript `import` statements):
-
-+ Node.js: version 14, see details at https://nodejs.org/api/esm.html
-+ Browsers: All but Internet Explorer, see table at https://caniuse.com/mdn-javascript_statements_import 
-
-## Example
-
 ```js
 describe("Using Mocha and Chai.expect", (done) => {
   function spec(a, b, c) {
@@ -33,17 +24,23 @@ describe("Using Mocha and Chai.expect", (done) => {
 })
 ```
 
+## Requirements
+
+ES2015 module support (i.e., JavaScript `import` statements):
+
++ Node.js: version 14, see details at https://nodejs.org/api/esm.html
++ Browsers: All but Internet Explorer, see table at https://caniuse.com/mdn-javascript_statements_import 
+
 ## Install
 
-From npm: `npm install wheredoc`
-
-From github: `git clone https://github.com/dfkaye/wheredoc.git`
++ from npm: `npm install wheredoc`
++ from github: `git clone https://github.com/dfkaye/wheredoc.git`
 
 ## Main test suite
 
-Main test suite created on Node.js, version 14.13.0, using Mocha 8.1.3 and Chai 4.2.0.
+Created on Node.js, version 14.13.0, using Mocha 8.1.3 and Chai 4.2.0.
 
-Run it with command, `npm test`
+Run with `npm test`
 
 ## Example suites on Node.js
 
