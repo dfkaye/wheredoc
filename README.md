@@ -38,8 +38,9 @@ Progress:
 + node examples:
   - mocha (using chai): `npm run mocha-node`
   - qunit (using qunit-tap): `npm run qunit-node`
-  - tape:  `npm run tape`
+  - tape (using tape-describe):  `npm run tape`
 + browser examples (using live-server and unpkg.com):
+  - `npm install -g live-server`
   - mocha (using chai): `npm run mocha`
   - qunit:  `npm run unit`
   
@@ -255,6 +256,7 @@ tape('suite', function(test) {
     - https://nodejs.org/api/esm.html#esm_interoperability_with_commonjs
     - https://exploringjs.com/impatient-js/ch_modules.html#import.meta.url-on-node.js
 
+
 ## docstring function variant
 
 - started 21 October 2020
@@ -291,7 +293,7 @@ var spec = {
 }
 ```
 
-`where` returns an array of scenarios, one for each data row, including its `params` map and a `test` function that you pass to your testing library's `it` or `test` functions. Here's a destructuring assignment example.
+`where` returns an array of scenarios, one for each data row, including its `params` map and a `test` function that you can 1) pass to your testing library's `it` or `test` functions, or 2) call directly. Here's a destructuring assignment example.
 
 ```js
 where(spec).forEach(scenario => {

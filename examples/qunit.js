@@ -9,12 +9,12 @@
  */
 
 /*
-* To import a commonJS module:
-*  - import createRequire from 'module'
-*  - set require = createRequire(import.meta.url);
-*  - require the module via its filepath, including extension.
-*  - destructuring assignment after module is loaded.
-*/
+ * To import a commonJS module:
+ *  - import createRequire from 'module'
+ *  - set require = createRequire(import.meta.url);
+ *  - require the module via its filepath, including extension.
+ *  - destructuring assignment after module is loaded.
+ */
 import { createRequire } from 'module';
 let require = createRequire(import.meta.url);
 let QUnit = require("qunit");
