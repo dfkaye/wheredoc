@@ -26,7 +26,7 @@ Progress:
 - *Nov 1: started putting draft,js under new test.js*
 - *Nov 2: test.js has draft.js covered.*
 - *Nov 4: string token tests, working examples for [tape](https://github.com/substack/tape) and [tape-describe](https://github.com/mattriley/tape-describe)*
-- *Nov 5: added examples for [qunit](https://qunitjs.com/) using [quit-tap](https://github.com/twada/qunit-tap).*
+- *Nov 5: added examples for [qunit](https://qunitjs.com/) using [qunit-tap](https://github.com/twada/qunit-tap).*
 - *Nov 6: added examples for mocha browser and qunit browser suites.; re-considering Function() support in the evaluate() method due to strict CSP.*
 - *Nov 7: reverted convert() to use JSON.parse() on object/array strings, allowing strict no-eval CSP in QUnit tests; mocha browser tests still requires unsafe-eval due to regenerator-runtime.js dependency. *
 - *Nov 8: point mocha.html to mocha 7.0.1, removes runtime.js dependency and eval/Function() error in strict CSP.*

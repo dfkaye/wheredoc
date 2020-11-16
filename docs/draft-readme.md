@@ -24,6 +24,14 @@ describe("Using Mocha and Chai.expect", (done) => {
 })
 ```
 
+## Scenarios
+
+The `where(spec)` call returns an array of scenarios (or errors - more on that elsewhere). A scenario contains a `params` map of key-value pairs, and a `test` function.
+
+In cases where the testing library uses a flattened pattern, such as [QUnit](https://qunitjs.com/), and [Tape](https://github.com/substack/tape), you can define the test name or message in the spec or test function itself, and call the scenario test directly in the iteration callback.
+
+In cases where the testing library uses the describe-it pattern, such as [Mocha](https://mochajs.org/#bdd) and [Jasmine](https://jasmine.github.io/), you can define the test name in each scenario iteration function, then pass both the name and the test function, e.g., as `it(name, test)`.
+
 ## Requirements
 
 ES2015 module support (i.e., JavaScript `import` statements):
@@ -54,6 +62,12 @@ The browser suites run with [live-server](https://github.com/tapio/live-server) 
 
 - mocha (using chai): `npm run mocha`
 - qunit:  `npm run unit`
+
+## Further Documentation
+
++ [Details about this library, prior art, redesign, formats, et cetera](/docs/details.md)
++ [Examples with different testing libraries](/docs/examples.md)
++ [Node.js interop between ES2015 modules and CommonJS](/docs/esm-and-cjs.md).
 
 ## License
 
