@@ -67,7 +67,7 @@ The browser suites run with [live-server](https://github.com/tapio/live-server) 
 
 ## Further Documentation
 
-+ [Details about this library, prior art, redesign, formats, et cetera](/docs/details.md)
++ [Details about prior art, redesign, defining specs, handling scenarios](/docs/details.md)
 + [Examples with different testing libraries](/docs/examples.md)
 + [Node.js interop between ES2015 modules and CommonJS](/docs/esm-cjs.md).
 + [Data table value types](/docs/values.md)

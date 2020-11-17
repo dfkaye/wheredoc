@@ -1,3 +1,7 @@
+Original README morphed into a huge catch-all of information.
+
+I've broken it up into the main README and subcategories in the [docs](/docs) folder.
+
 # wheredoc
 
 Use docstring-like data tables in JavaScript tests, similar to Cucumber's Scenario Outline `Examples:` or Spock `where:` blocks.
