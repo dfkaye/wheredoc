@@ -17,7 +17,7 @@
 
 ## Prior Art
 
-The previous incarnation of this project is [where.js](https://github.com/dfkaye/where.js) created in 2014.
+The previous incarnation of this project is [where.js](https://github.com/dfkaye/where.js) created in 2014, now deprecated as of November 17, 2020.
 
 The intial inspiration comes from a post by [JP Castro](https://twitter.com/jphsf) from 2012, [DRYing Up Your JavaScript Jasmine Tests With the Data Provider Pattern](http://blog.jphpsf.com/2012/08/30/drying-up-your-javascript-jasmine-tests).
 
