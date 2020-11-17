@@ -1,18 +1,18 @@
 # Details
 
-- Prior Art
-  - Goals
-  - Problems
-  - Simplifying
-- Tour of spec formats
-  - Docstring table
-  - Docstring function
-  - Object specifier
-  - Docstring types
-- Scenarios
-  - Error scenarios (corrections)
-- The Whole API is exposed
-  - Opinion: Hiding everything is an anti-pattern
+- [Prior Art](#prior-art)
+  - [Goals](#goals)
+  - [Problems](#problems)
+  - [Simplifying](#simplifying)
+- [Tour of spec formats](#tour-of-spec-formats)
+  - [Docstring table](#docstring-table)
+  - [Docstring function](#docstring-function)
+  - [Object specifier](#object-specifier)
+  - [Docstring types](#docstring-types)
+- [Scenarios](#scenarios)
+  - [Error scenarios (corrections)](#error-scenarios-corrections)
+- [The Whole API is exposed](#the-whole-api-is-exposed)
+  - [Opinion: Hiding everything is an anti-pattern](#opinion)
 
 ## Prior Art
 
