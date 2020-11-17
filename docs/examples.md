@@ -1,6 +1,10 @@
 # Examples
 
-Some specifications using [mocha](https://mochajs.org/#bdd) and [chai](https://www.chaijs.com/api/bdd/), [qunit](https://qunitjs.com/), and [tape](https://github.com/substack/tape).
+Following are example specifications using different testing libraries.
+
+- [mocha](https://mochajs.org/#bdd) and [chai](https://www.chaijs.com/api/bdd/)
+- [qunit](https://qunitjs.com/)
+- [tape](https://github.com/substack/tape)
 
 ## Mocha BDD with Chai
 

@@ -1,8 +1,6 @@
 # Node.js interop between ES2015 modules and CommonJS
 
-Because `wheredoc` is an ESM (ES2105 module), specified with `type: "module"` in package.json, other modules cannot use the CommonJS `require` syntax to import it.
-
-## Sources
+Because `wheredoc` is an ESM (ES2105 module), specified with `type: "module"` in [package.json](/package.json), other modules cannot use the CommonJS `require` syntax to import it.
 
 Found the answers to this problem in the following articles.
 

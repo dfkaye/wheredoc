@@ -1,37 +1,78 @@
-# Values
-
-*16 Nov 2020: in progress*
+# Values and Types
 
 What kind of values are suppported in the docstring table?
 
-# Voids
+## void
 
 ```js
   a  |    b
 null | undefined
 ```
 
-will return params `{ a: null, b: undefined }`
+will convert to  `{ a: null, b: undefined }`
 
-# Booleans
+## Boolean
 
 ```js
   a   |    b
 false | true
 ```
 
-will return params `{ a: false, b: true }`
+will convert to `{ a: false, b: true }`
 
-# Numbers
+## Math.CONSTANT
 
-# Number.CONSTANT
+```js
+    E     |   PI
+  Math.E  | Math.PI
+```
 
-# Math.CONSTANT
+will convert to `{ E: 2.718281828459045, PI: 3.141592653589793 }`
 
-# Strings
+## Number
 
-# Quoted Strings
+```js
+  a | b | c
+  1 | 2 | 3
+```
 
-# Objects
+will convert to `{ a: 1, b: 2, c: 3 }`
 
-# Arrays
+## Number.CONSTANT
+
+```js
+        A     |      B 
+  Number.NaN  | Number.POSITIVE_INFINITY
+```
+
+will convert to `{ A: NaN, B: Infinity }`
+
+## Quoted Strings
+
+```js
+  Single  | Double    | Quoted
+  'quote' | "quotes"  | "He said, \"Hello.\""
+```
+
+will convert to `{ Single: 'quote', Double: "quotes", Quoted: "He said, \"Hello.\"" }`
+
+## JSON Objects and Arrays
+
+You can enter a *valid* JSON object shape or an array in each column. Field names (keys) must be quoted.
+
+```js
+      user            |       talents
+  { "name": "Debbie" }  | ["Smart", "Gets things done"]
+```
+
+will convert to `{ user: { name: "Debbie" }, talents: ["Smart", "Gets things done"] }`
+
+An invalid JSON object containing an unquoted field name (key) will result in a JSON.parse() error message.
+
+```js
+      user
+  { name: "Debbie" }
+```
+
+will result in an error message in the scenario, `"Unexpected token n in JSON at position 2"`.
+
