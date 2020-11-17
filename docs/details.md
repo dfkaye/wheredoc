@@ -6,6 +6,7 @@
   - [Simplifying](#simplifying)
 - [Tour of spec formats](#tour-of-spec-formats)
   - [Docstring table](#docstring-table)
+  - [Line comments](#line-comments)
   - [Docstring function](#docstring-function)
   - [Object specifier](#object-specifier)
   - [Docstring types](#docstring-types)
@@ -107,6 +108,33 @@ You can include the external table borders in Cucumber style, but these are opti
 where: `
 | a | b | c |
 | 1 | 2 | 3 |
+`
+```
+
+Empty rows are ignored. The following will convert to params `{ a: 1, b: 2, c: 3 }` and `{ a: 4, b: 5, c: 9 }`.
+
+```js
+where: `
+| a | b | c |
+
+| 1 | 2 | 3 |
+
+| 4 | 5 | 9 |
+
+`
+```
+
+### Line comments
+
+The usual line comment syntax, `//` will prevent any characters that follow from being processed. You can comment an entire row to prevent it being processed, and add trailing comments on each row.
+
+```js
+where: `
+      a | b | c
+  // ignores this line
+      1 | 2 | 3   // should pass
+      1 | 0 | 0   // should fail
+  //  2 | 2 | 4   // should ignore
 `
 ```
 
