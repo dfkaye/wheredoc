@@ -215,7 +215,7 @@ A docstring can be a labeled *comment* inside the spec function. Note that the c
 
 ```js
 function spec(a, b, c ) {
-  // expectation...
+  expect(c).to.equal(a + b)
   
   where: /*
     a |  b |  c \

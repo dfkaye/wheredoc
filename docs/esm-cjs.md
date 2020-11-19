@@ -12,7 +12,7 @@ Found the answers to this problem in the following articles.
 To import a CommonJS module (in this case, chai.js):
 - import createRequire from 'module'
 - declare require = createRequire(import.meta.url);
-- require the module via its package name or its filepath if its not a package.
+- require the module via its package name or its filepath if it is not a package.
 - use destructuring assignment after module is loaded.
 
 ```js
