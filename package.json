@@ -1,16 +1,16 @@
 {
   "name": "wheredoc",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "ES6-friendly version of where.js, data-table-driven support module for JavaScript test libraries.",
   "main": "where.js",
   "type": "module",
   "scripts": {
-    "test": "node node_modules/mocha/bin/mocha test.js",
-    "mocha-node": "node node_modules/mocha/bin/mocha ./examples/mocha.js",
-    "qunit-node": "node ./examples/qunit.js",
-    "tape": "node ./examples/tape.js",
-    "mocha": "live-server --port=9090 --open=examples/mocha.html",
-    "qunit": "live-server --port=9191 --open=examples/qunit.html"
+    "test": "node node_modules/mocha/bin/mocha test/node-suite.js",
+    "mocha-node": "node node_modules/mocha/bin/mocha ./examples/mocha/suite.js",
+    "qunit-node": "node ./examples/qunit/suite.js",
+    "tape": "node ./examples/tape/suite.js",
+    "mocha": "live-server --port=9090 --open=examples/mocha/suite.html",
+    "qunit": "live-server --port=9191 --open=examples/qunit/suite.html"
   },
   "repository": {
     "type": "git",

@@ -40,11 +40,11 @@ describe('mocha + chai', (done) => {
 
 ### Node.js
 
-You can view the mocha-node example at [/examples/mocha.js](/examples/mocha.js), and run the mocha node suite with `npm run mocha-node`.
+You can view the mocha-node example at [/examples/mocha/suite.js](/examples/mocha/suite.js), and run the mocha node suite with `npm run mocha-node`.
 
 ### Browser
 
-You can view the mocha browser example at [/examples/mocha.html](/examples/mocha.html), and run the mocha browser suite with `npm run mocha`.
+You can view the mocha browser example at [/examples/mocha/suite.html](/examples/mocha/suite.html), and run the mocha browser suite with `npm run mocha`.
 
 Note: Bug found in Mocha 8.1.x which fails in strict Content-Security-Policy that does not allow `script-src 'unsafe-eval'` in browsers. See [Facebook Still Breaking Things](https://dfkaye.com/posts/2020/11/07/facebook-still-breaking-things/).
 
@@ -89,11 +89,11 @@ QUnit.start()
 
 ### Node.js
 
-On Node.js, we use [qunit-tap](https://github.com/twada/qunit-tap) to print the QUnit test results to the console. You can view the QUnit node example at [/examples/unit.js](/examples/qunit.js), and run the QUnit node suite with `npm run qunit-node`. 
+On Node.js, we use [qunit-tap](https://github.com/twada/qunit-tap) to print the QUnit test results to the console. You can view the QUnit node example at [/examples/qunit/suite.js](/examples/qunit/.js), and run the QUnit node suite with `npm run qunit-node`. 
 
 ### Browser
 
-You can view the QUnit browser example at [/examples/qunit.html](/examples/qunit.html), and run the QUnit browser suite with `npm run qunit`.
+You can view the QUnit browser example at [/examples/qunit/suite.html](/examples/qunit/suite.html), and run the QUnit browser suite with `npm run qunit`.
 
 ## Tape
 
@@ -126,4 +126,4 @@ tape('suite', function(test) {
 
 ### Node.js
 
-On the Node.js example, we use [tape-describe](https://github.com/mattriley/tape-describe) to rename `tape` and `test`, and so forth. You can view the tape example at [/examples/tape.js](/examples/tape.js), and run the tape node suite with `npm run tape`.
+On the Node.js example, we use [tape-describe](https://github.com/mattriley/tape-describe) to rename `tape` and `test`, and so forth. You can view the tape example at [/examples/tape/suite.js](/examples/tape/suite.js), and run the tape node suite with `npm run tape`.

@@ -63,7 +63,7 @@ Run with `npm test`
 The browser suites run with [live-server](https://github.com/tapio/live-server) and download the testing libraries from https://unpkg.com. You should install live-server globally, `npm install -g live-server`, before running these examples.
 
 - mocha (using chai): `npm run mocha`
-- qunit:  `npm run unit`
+- qunit:  `npm run qunit`
 
 ## Further Documentation
 
