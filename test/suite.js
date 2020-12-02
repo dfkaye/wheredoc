@@ -853,16 +853,9 @@ describe("wheredoc", () => {
           var actual = where.doc.convert({ tokens });
 
           expect(actual[0]).to.be.an("error")
-          expect(actual[0].message).to.include("Unexpected token b in JSON at position 2");
-
           expect(actual[1]).to.be.an("error")
-          expect(actual[1].message).to.include("Unexpected token u in JSON at position 14")
-
           expect(actual[2]).to.be.an("error")
-          expect(actual[2].message).to.include("Unexpected token { in JSON at position 2");
-
           expect(actual[3]).to.be.an("error")
-          expect(actual[3].message).to.include("Unexpected end of JSON input");
         })
       })
     })
