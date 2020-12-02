@@ -30,6 +30,7 @@ Tracking the thought process, interruptions, things to do, etc.
 - *Nov 8: point mocha.html to mocha 7.0.1, removes runtime.js dependency and eval/Function() error in strict CSP.*
 - Nov 11: rename draft as where; move old where and mocha to legacy; add mocha example; move live-server-fix to examples; version 0.0.4; JSDoc added to where.js.
 - Nov 16-17: Add docs folder, document different concerns, bump version 0.0.5.
+- Dec 2: Fix mocha browser example CSP errors: move all imports to a single script and fetch that using a script element.
 
 ## To Do
 
