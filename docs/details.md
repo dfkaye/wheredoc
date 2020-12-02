@@ -43,7 +43,7 @@ See also [data-driven](https://github.com/fluentsoftware/data-driven), an extens
 
 ### Goals
 
-With where.js, wanted to remove the need for the lengthy array argument, and took my next inspiration from [Spock's `where:` block](http://spockframework.org/spock/docs/1.0/data_driven_testing.html) and [Cucumber's Scenario Outline `Examples:` block](https://javapointers.com/automation/cucumber/cucumber-scenario-outline-example/), declaring the data table inside a three-asterisk comment syntax parsed from inside a function.
+With where.js, I wanted to remove the need for the lengthy array argument, and took my next inspiration from [Spock's `where:` block](http://spockframework.org/spock/docs/1.0/data_driven_testing.html) and [Cucumber's Scenario Outline `Examples:` block](https://javapointers.com/automation/cucumber/cucumber-scenario-outline-example/), declaring the data table inside a three-asterisk comment syntax parsed from inside a function.
 
 ```js
 describe("scenario", function () {
