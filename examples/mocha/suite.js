@@ -13,7 +13,7 @@ import chai from "chai";
 let { assert, expect } = chai;
 
 describe("mocha+chai", () => {
-  describe("passing", () => {
+  describe("should pass", () => {
     function spec(a, b, c) {
       // chai expect style
       expect(c).to.equal(a + b)
@@ -39,7 +39,7 @@ describe("mocha+chai", () => {
     })
   })
 
-  describe("failing", () => {
+  describe("should fail", () => {
     function spec(a, b, c) {
       // chai assert style
       assert.equal(c, a + b)
@@ -48,7 +48,7 @@ describe("mocha+chai", () => {
         a |  b |  c
         1 |  0 |  0
         2 |  2 |  3
-       -2 | -2 | -3
+       -2 | -2 | -3 // should fail
       `;
     }
 

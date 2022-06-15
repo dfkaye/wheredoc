@@ -34,7 +34,7 @@ let describe = require("tape-describe")
 // or just use import { ... }
 import { where } from '../../where.js';
 
-tape('tape passing example', function (test) {
+tape('should pass', function (test) {
   function spec(a, b, c) {
 
     // tape's test runs here, accepts testName param.
@@ -67,7 +67,7 @@ tape('tape passing example', function (test) {
   test.end();
 });
 
-tape('tape error example', function (test) {
+tape('should fail', function (test) {
   function spec(a, b, c) {
 
     // tape's test runs here, and accepts a testName param.
@@ -91,7 +91,7 @@ tape('tape error example', function (test) {
 
     where: `
     a | b | c
-    3 | 2 | 1   // should fail
+    3 | 2 | 1  // should fail
     X | Y | Z  // string concatenation 
     `;
   }

@@ -54,6 +54,8 @@ Run with `npm test`
 
 ## Example suites on Node.js
 
+These have both passing and failing examples.
+
 - mocha (using chai): `npm run mocha-node`
 - qunit (using qunit-tap): `npm run qunit-node`
 - tape (using tape-describe):  `npm run tape`
@@ -61,6 +63,8 @@ Run with `npm test`
 ## Browser example suites
 
 The browser suites run with [live-server](https://github.com/tapio/live-server) and download the testing libraries from https://unpkg.com. You should install live-server globally, `npm install -g live-server`, before running these examples.
+
+These have both passing and failing examples.
 
 - mocha (using chai): `npm run mocha`
 - qunit:  `npm run qunit`

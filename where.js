@@ -293,18 +293,18 @@ function convert({ tokens }) {
       }
     }
 
-    // Test for JSON object or array literal
-    var first = token[0];
-    var last = token[token.length - 1];
+    if (/^(\{(.)*\})|(\[(.)*\])$/.test(token)) {
+      // Test for JSON object or array literal
+      var value;
 
-    if (first == "{" && last == "}" || first == "[" && last == "]") {
       try {
-        var object = JSON.parse(token)
-
-        return object
+        value = JSON.parse(token)
       }
       catch (error) {
-        return error
+        value = error
+      }
+      finally {
+        return value
       }
     }
 
